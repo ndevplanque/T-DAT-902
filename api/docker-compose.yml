@@ -1,5 +1,3 @@
-name: t-dat-902
-
 services:
   t-dat-902-api:
     build:
@@ -11,25 +9,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - PORT=${PORT}
-    depends_on:
-      - t-dat-902-db
     volumes:
       - .:/app
       - /app/node_modules
-    command: "npm start"
-
-  t-dat-902-db:
-    image: postgres:15
-    container_name: t-dat-902-db
-    restart: always
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - t-dat-902-pgdata:/var/lib/postgresql/data
-
-volumes:
-  t-dat-902-pgdata:
+    command: "npm run dev"

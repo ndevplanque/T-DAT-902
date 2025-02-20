@@ -15,8 +15,8 @@ COPY . .
 # Donner les permissions d'exécution au script .docker/npm.sh
 RUN chmod +x .docker/npm.sh
 
-# Lancer l'application avec npm start
-CMD ["npm", "start"]
+# Lancer l'application en mode développement
+CMD ["npm", "run", "dev"]
 
-# Exposer le port 3000
-EXPOSE 3000
+# Exposer le port 4000
+EXPOSE 4000

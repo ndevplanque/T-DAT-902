@@ -1,5 +1,5 @@
 {
-  "name": "express-api",
+  "name": "t-dat-902-api",
   "version": "1.0.0",
   "description": "Une API Express 5 minimaliste",
   "main": "server.js",

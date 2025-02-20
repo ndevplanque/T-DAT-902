@@ -1,4 +1,22 @@
+name: t-dat-902
+
 services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    networks:
+      - t-dat-902-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    networks:
+      - t-dat-902-network
+
   # Apache Hadoop (ResourceManager, NodeManager, NameNode, DataNode)
   hadoop:
     container_name: hadoop
@@ -24,7 +42,10 @@ services:
     ports:
       - "4040:4040"
 
+networks:
+  t-dat-902-network:
+    driver: bridge
+
 #volumes:
   #mysql-volume:
   #mongo-volume:
-

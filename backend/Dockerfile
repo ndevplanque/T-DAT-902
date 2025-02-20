@@ -14,5 +14,10 @@ COPY . .
 # Exposer le port utilisé par Flask
 EXPOSE 5000
 
+# Définir les variables d'environnement pour Flask
+ENV FLASK_APP=api.py
+ENV FLASK_ENV=development
+ENV FLASK_DEBUG=1
+
 # Définir la commande de démarrage
-CMD ["python", "api.py"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]

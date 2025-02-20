@@ -5,6 +5,12 @@ services:
     build: ./backend
     ports:
       - "5000:5000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - FLASK_APP=api.py
+      - FLASK_ENV=development # For hot-reloading
+      - FLASK_DEBUG=1 # For hot-reloading
     networks:
       - t-dat-902-network
 
@@ -12,6 +18,12 @@ services:
     build: ./frontend
     ports:
       - "8501:8501"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true # Do not open a browser window on startup
+      - STREAMLIT_DEVELOPMENT=true # For hot-reloading
+      - STREAMLIT_SERVER_RUN_ON_SAVE=true # For hot-reloading
     depends_on:
       - backend
     networks:

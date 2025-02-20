@@ -8,4 +8,4 @@ def api_v1_health():
 
 @app.route('/api/v1/data', methods=['GET'])
 def api_v1_data():
-    return jsonify({"message": "Hello from Flask!", "value": 48})
+    return jsonify({"message": "Hello from Flask!", "value": 42})

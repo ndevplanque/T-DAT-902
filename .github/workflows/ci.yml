@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: T-DAT-902-CI
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main  # Déclenche l'action lors de la création d'une pull request
 
 jobs:
-  test:
+  unit-tests:
     runs-on: ubuntu-latest  # Utilise un runner Ubuntu pour ton environnement de test
 
     steps:

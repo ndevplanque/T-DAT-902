@@ -1,4 +1,34 @@
+name: t-dat-902
+
 services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - FLASK_APP=api.py
+      - FLASK_ENV=development # For hot-reloading
+      - FLASK_DEBUG=1 # For hot-reloading
+    networks:
+      - t-dat-902-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true # Do not open a browser window on startup
+      - STREAMLIT_DEVELOPMENT=true # For hot-reloading
+      - STREAMLIT_SERVER_RUN_ON_SAVE=true # For hot-reloading
+    depends_on:
+      - backend
+    networks:
+      - t-dat-902-network
+
   # Apache Hadoop (ResourceManager, NodeManager, NameNode, DataNode)
   hadoop:
     container_name: hadoop
@@ -24,7 +54,10 @@ services:
     ports:
       - "4040:4040"
 
+networks:
+  t-dat-902-network:
+    driver: bridge
+
 #volumes:
   #mysql-volume:
   #mongo-volume:
-

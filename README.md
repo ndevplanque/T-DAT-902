@@ -22,4 +22,4 @@ Members:
 - [Thibaut Ruscher](https://github.com/ThibautRuscher)
 - [Pierre Halm](https://github.com/Pirooooooo)
 - [Nicolas Delplanque](https://github.com/ndevplanque)
-- [Safidy Joas](https://github.com/)
+- [Safidy Joas](https://github.com/Razanakotoniaina)

@@ -6,6 +6,6 @@ def test_example():
 
     assert isinstance(result, dict)
     assert "message" in result
-    assert result["message"] is "Hello from Flask!"
+    assert result["message"] == "Hello from Flask!"
     assert "value" in result
-    assert result["value"] is 42
+    assert result["value"] == 42

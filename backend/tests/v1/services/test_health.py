@@ -6,4 +6,4 @@ def test_health():
 
     assert isinstance(result, dict)
     assert "success" in result
-    assert result["success"] is True
+    assert result["success"] == True

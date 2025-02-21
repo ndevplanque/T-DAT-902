@@ -21,7 +21,7 @@ else:
     st.error("API Flask : Offline ❌")
 
 if st.button("Fetch data"):
-    response = requests.get(api.v1("data"))
+    response = requests.get(api.v1("example"))
     if response.status_code == 200:
         data = response.json()
         st.write(f"Message : {data['message']}")

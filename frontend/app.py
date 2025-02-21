@@ -1,22 +1,27 @@
+# Librairies
+import os
+from dotenv import load_dotenv
 import streamlit as st
 import requests
+from streamlit_folium import folium_static
 import pandas as pd
 
-API_V1_URL = "http://backend:5000/api/v1"
+# Local
+import map_utils as map
+import api_utils as api
 
-def v1(endpoint):
-    return f"{API_V1_URL}/{endpoint}"
+load_dotenv() # Charger les variables d'environnement depuis le fichier .env
 
 st.title("Homepedia 🏠")
 
-health = requests.get(v1("health"))
+health = requests.get(api.v1("health"))
 if health.status_code == 200:
     st.write("API Flask : Online ✅")
 else:
     st.error("API Flask : Offline ❌")
 
 if st.button("Fetch data"):
-    response = requests.get(v1("data"))
+    response = requests.get(api.v1("data"))
     if response.status_code == 200:
         data = response.json()
         st.write(f"Message : {data['message']}")
@@ -24,10 +29,17 @@ if st.button("Fetch data"):
     else:
         st.error("Error fetching data.")
 
-st.title("Visualisation de la carte")
+st.title("Carte des Prix Immobiliers 📍")
 
-map = requests.get(v1("map"))
-if map.status_code == 200:
-    st.map(pd.DataFrame(map.json()), latitude="lat", longitude="lon", size="size", color="color")
+response = requests.get(api.v1("map"))
+if response.status_code == 200:
+    data = response.json()
+    m = map.create() # Création de la carte avec Mapbox
+
+    # Ajouter des polygones représentant les zones
+    for zone in data["zones"]:
+        map.polygon(zone, data["min_price"], data["max_price"]).add_to(m)
+
+    folium_static(m) # Affichage de la carte
 else:
-    st.error("Error fetching map data.")
+    st.error("Impossible de récupérer les données")

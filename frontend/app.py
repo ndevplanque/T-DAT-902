@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import pandas as pd
 
 API_V1_URL = "http://backend:5000/api/v1"
 
@@ -22,3 +23,11 @@ if st.button("Fetch data"):
         st.write(f"Value : {data['value']}")
     else:
         st.error("Error fetching data.")
+
+st.title("Visualisation de la carte")
+
+map = requests.get(v1("map"))
+if map.status_code == 200:
+    st.map(pd.DataFrame(map.json()), latitude="lat", longitude="lon", size="size", color="color")
+else:
+    st.error("Error fetching map data.")

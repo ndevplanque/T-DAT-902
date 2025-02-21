@@ -18,6 +18,22 @@ Run the following command:
 sh launch.sh
 ```
 
+### Test the project
+
+### Prerequisites
+
+Install the following dependencies:
+
+- python3.9
+- pytest
+- pytest-mock
+
+Run the following command:
+
+```sh
+sh launch.sh
+```
+
 Members:
 - [Thibaut Ruscher](https://github.com/ThibautRuscher)
 - [Pierre Halm](https://github.com/Pirooooooo)

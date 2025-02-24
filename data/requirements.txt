@@ -1,0 +1,4 @@
+python-dotenv
+pyspark
+shapely
+psycopg2-binary

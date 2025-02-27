@@ -1,25 +1,11 @@
-from flask import Flask, jsonify
+from flask import jsonify
+import json
 import pandas as pd
 import numpy as np
-import json
-
-app = Flask(__name__)
-
-@app.route('/', methods=['GET'])
-def root():
-    return api_v1_health()
-
-@app.route('/api/v1/health', methods=['GET'])
-def api_v1_health():
-    return jsonify({"success": True})
-
-@app.route('/api/v1/data', methods=['GET'])
-def api_v1_data():
-    return jsonify({"message": "Hello from Flask!", "value": 42})
 
 # Charger le fichier geojson à partir du même dossier
 def load_geojson():
-    with open('epci-1000m.geojson', 'r') as file:
+    with open('api/v1/resources/epci-1000m.geojson', 'r') as file:
         data = json.load(file)
     return data
 
@@ -27,8 +13,7 @@ def load_geojson():
 def generate_random_price():
     return round(np.random.uniform(1500, 6000), 2)
 
-@app.route('/api/v1/map', methods=['GET'])
-def api_v1_map():
+def map():
     # Charger les données du fichier geojson
     geojson_data = load_geojson()
 
@@ -59,8 +44,8 @@ def api_v1_map():
             'price': zone_price
         })
 
-    return jsonify({
-        'zones': zones,
-        'min_price': min_price,
-        'max_price': max_price,
-    })
+    return {
+       'zones': zones,
+       'min_price': min_price,
+       'max_price': max_price,
+    }

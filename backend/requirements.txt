@@ -1,4 +1,5 @@
 flask
-pytest
 pandas
 numpy
+pytest
+pytest-mock

@@ -1,9 +1,9 @@
 from flask import Flask, jsonify
 import pandas as pd
 import numpy as np
-from v1.services.health import health
-from v1.services.example import example
-from v1.services.map import map
+from api.v1.services.health import health
+from api.v1.services.example import example
+from api.v1.services.map import map
 
 app = Flask(__name__)
 

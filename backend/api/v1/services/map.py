@@ -5,7 +5,7 @@ import numpy as np
 
 # Charger le fichier geojson à partir du même dossier
 def load_geojson():
-    with open('v1/resources/epci-1000m.geojson', 'r') as file:
+    with open('api/v1/resources/epci-1000m.geojson', 'r') as file:
         data = json.load(file)
     return data
 

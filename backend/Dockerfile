@@ -15,7 +15,7 @@ COPY . .
 EXPOSE 5000
 
 # Définir les variables d'environnement pour Flask
-ENV FLASK_APP=api.py
+ENV FLASK_APP=api/main.py
 ENV FLASK_ENV=development
 ENV FLASK_DEBUG=1
 

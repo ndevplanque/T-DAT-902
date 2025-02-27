@@ -1,5 +1,5 @@
 import pytest
-from v1.services.health import health
+from api.v1.services.health import health
 
 def test_health():
     result = health()

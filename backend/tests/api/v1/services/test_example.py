@@ -1,5 +1,5 @@
 import pytest
-from v1.services.example import example
+from api.v1.services.example import example
 
 def test_example():
     result = example()

@@ -45,7 +45,9 @@ def map():
         })
 
     return {
-       'zones': zones,
-       'min_price': min_price,
-       'max_price': max_price,
+        "epci": {
+           'zones': zones,
+           'min_price': min_price,
+           'max_price': max_price,
+        }
     }

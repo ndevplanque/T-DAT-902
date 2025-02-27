@@ -31,7 +31,8 @@ Install the following dependencies:
 Run the following command:
 
 ```sh
-sh launch.sh
+cd backend
+pytest
 ```
 
 Members:

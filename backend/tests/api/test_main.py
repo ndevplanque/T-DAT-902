@@ -11,7 +11,7 @@ def client():
 # Test pour l'endpoint /api/v1/health
 def test_api_v1_health(client, mocker):
     # Patch la fonction health et retourne une valeur compatible JSON
-    mock_health = mocker.patch("api.main.health", return_value={"some": "data"})
+    mock_health = mocker.patch("api.main.v1_health", return_value={"some": "data"})
     response = client.get("/api/v1/health")
 
     assert response.status_code == 200
@@ -20,7 +20,7 @@ def test_api_v1_health(client, mocker):
 # Test pour l'endpoint /api/v1/example
 def test_api_v1_example(client, mocker):
     # Patch la fonction example et retourne une valeur compatible JSON
-    mock_example = mocker.patch("api.main.example", return_value={"some": "data"})
+    mock_example = mocker.patch("api.main.v1_example", return_value={"some": "data"})
     response = client.get("/api/v1/example")
 
     assert response.status_code == 200
@@ -29,7 +29,7 @@ def test_api_v1_example(client, mocker):
 # Test pour l'endpoint /api/v1/map
 def test_api_v1_map(client, mocker):
     # Patch la fonction map et retourne une valeur compatible JSON
-    mock_map = mocker.patch("api.main.map", return_value={"some": "data"})
+    mock_map = mocker.patch("api.main.v1_map", return_value={"some": "data"})
     response = client.get("/api/v1/map")
 
     assert response.status_code == 200

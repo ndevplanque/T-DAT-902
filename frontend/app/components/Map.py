@@ -6,23 +6,15 @@ from utils import api
 from streamlit_folium import folium_static
 
 map_instance = None
-map_layers = [
-    {"name":"EPCI", "key":"epci"},
-    {"name":"Communes", "key":"communes"},
-    {"name":"Départements", "key":"departements"},
-    {"name":"Régions", "key":"regions"}
-]
 
 def Map(data):
-    _create() # Création de la carte avec Mapbox
-    for layer in map_layers: # Ajout des couches
-        if layer["key"] in data:
-            _add_layer(layer["name"], data[layer["key"]])
-    _activate_layer_control() # Activation du contrôle des couches
-    _display() # Affichage de la carte
+    _create()
+    for layer in data["layers"]:
+        _add_layer(layer)
+    _activate_layer_control()
+    _display()
 
 def _create():
-    token = os.getenv('MAPBOX_ACCESS_TOKEN')
     global map_instance
     map_instance = folium.Map(
         location=[48.584614, 7.750713],  # Strasbourg
@@ -31,6 +23,7 @@ def _create():
     )
 
     # Ajout de la couche Mapbox comme TileLayer
+    token = os.getenv('MAPBOX_ACCESS_TOKEN')
     folium.TileLayer(
         tiles=f"https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{{z}}/{{x}}/{{y}}?access_token={token}",
         attr="Mapbox",
@@ -40,27 +33,12 @@ def _create():
     ).add_to(map_instance)
 
 # Utilisation d'une échelle de couleurs douces, du vert au rouge
-colors = [
-    "#006400",  # Vert foncé
-    "#228B22",  # Vert forêt
-    "#32CD32",  # Vert lime
-    "#7CFC00",  # Vert clair
-    "#ADFF2F",  # Vert jaune
-    "#FFFF00",  # Jaune
-    "#FFD700",  # Jaune doré
-    "#FFA500",  # Orange
-    "#FF8C00",  # Orange foncé
-    "#FF6347",  # Tomate
-    "#FF4500",  # Rouge orangé
-    "#FF0000"   # Rouge
-]
+colors = ["#060", "#282", "#3C3", "#7F0", "#AF2", "#FF0", "#FD0", "#FA0", "#F80", "#F64", "#F40", "#F00"]
 
 def _get_fill_color(zone, min_price, max_price):
-    # Calcul de la position relative entre le prix min et max
     normalized_price = (zone["price"] - min_price) / (max_price - min_price)
-
-    # Sélection de la couleur correspondante
-    return colors[int(normalized_price * (len(colors) - 1))]
+    index = int(normalized_price * (len(colors) - 1))
+    return colors[index]
 
 def _polygon(zone, color):
     return folium.Polygon(
@@ -73,34 +51,25 @@ def _polygon(zone, color):
         popup=zone["name"]
     )
 
-# Ajouter des zones sur la carte
-def _add_layer(layer_name, layer_data):
-    global map_instance
-    if map_instance is None:
-        raise ValueError("La carte doit être créée avant d'ajouter des zones.")
+def _add_layer(layer):
+    map_layer = folium.FeatureGroup(name=layer["name"])
 
-    zones = layer_data["zones"]
-    min_price = layer_data["min_price"]
-    max_price = layer_data["max_price"]
-
-    # Création d'un groupe de couches
-    layer = folium.FeatureGroup(name=layer_name)
-
-    for zone in zones:
-        color = _get_fill_color(zone, min_price, max_price)
+    for zone in layer["zones"]:
+        color = _get_fill_color(zone, layer["min_price"], layer["max_price"])
         polygon = _polygon(zone, color)
-        layer.add_child(polygon)
+        map_layer.add_child(polygon)
 
-    # Ajout du layer à la carte
-    map_instance.add_child(layer)
+    global map_instance
+    map_instance.add_child(map_layer)
 
 def _activate_layer_control():
+    global map_instance
+    if map_instance is None:
+            raise ValueError("La carte doit être créée avant d'activer le contrôle des couches.")
     folium.LayerControl().add_to(map_instance)
 
-# Affichage de la carte
 def _display():
     global map_instance
     if map_instance is None:
         raise ValueError("La carte doit être créée avant d'être affichée.")
-
     folium_static(map_instance)

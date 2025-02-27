@@ -1,14 +1,12 @@
 # Librairies
 import os
-from dotenv import load_dotenv
 import streamlit as st
+import pandas as pd
 import requests
 from streamlit_folium import folium_static
-import pandas as pd
-
-# Local
-import map_utils as map
-import api_utils as api
+from dotenv import load_dotenv
+import utils.map as map
+import utils.api as api
 
 load_dotenv() # Charger les variables d'environnement depuis le fichier .env
 

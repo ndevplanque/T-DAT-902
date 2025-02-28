@@ -13,10 +13,15 @@ def load_geojson():
 def generate_random_price():
     return round(np.random.uniform(1500, 6000), 2)
 
-def map():
-    # Charger les données du fichier geojson
-    geojson_data = load_geojson()
+def layer_builder(name, zones, min_price, max_price):
+    return {
+        "name": name,
+        "zones": zones,
+        "min_price": min_price,
+        "max_price": max_price,
+    }
 
+def layer_from_geojson(layer_name, geojson_data):
     zones = []
     min_price = None
     max_price = None
@@ -24,8 +29,6 @@ def map():
     for feature in geojson_data['features']:
         zone_name = feature['properties']['nom']
         zone_coordinates = feature['geometry']['coordinates'][0]
-
-        # Générer un prix aléatoire pour la zone (ou utiliser tes données réelles)
         zone_price = generate_random_price()
 
         # Mettre à jour min_price et max_price
@@ -35,7 +38,6 @@ def map():
             max_price = zone_price
 
         # Correction de l'inversion des coordonnées (GeoJSON a souvent [longitude, latitude])
-        # Ici, on inverse pour avoir [latitude, longitude]
         corrected_coordinates = [[coord[1], coord[0]] for coord in zone_coordinates]
 
         zones.append({
@@ -44,8 +46,13 @@ def map():
             'price': zone_price
         })
 
-    return {
-       'zones': zones,
-       'min_price': min_price,
-       'max_price': max_price,
-    }
+    return layer_builder(layer_name, zones, min_price, max_price)
+
+def map():
+    geojson_data = load_geojson()
+
+    communes = layer_from_geojson('Communes', geojson_data)
+    departements = layer_from_geojson('Départements', geojson_data)
+    regions = layer_from_geojson('Régions', geojson_data)
+
+    return {"layers": [communes, departements, regions]}

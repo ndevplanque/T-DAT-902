@@ -1,0 +1,8 @@
+FROM bitnami/spark:3.4.1
+
+USER root
+
+# Installation des packages Python requis
+RUN pip install shapely psycopg2-binary
+
+USER 1001

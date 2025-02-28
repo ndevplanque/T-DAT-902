@@ -18,15 +18,15 @@ Run the following command:
 sh launch.sh
 ```
 
-### Test the project
+## Test the project
 
-### Prerequisites
+### API's Unit Tests
 
 Install the following dependencies:
 
-- python3.9
-- pytest
-- pytest-mock
+- `python3.9`
+- `pytest`
+- `pytest-mock`
 
 Run the following command:
 
@@ -35,7 +35,23 @@ cd backend
 pytest
 ```
 
-Members:
+### Data integrity tests
+
+Install the following dependencies:
+
+- `python3.9`
+- `folium`
+- `psycopg2-binary`
+- `shapely`
+
+Run the following command:
+
+```sh
+cd geo_importer
+python3 test_polygons.py
+```
+
+# Members:
 - [Thibaut Ruscher](https://github.com/ThibautRuscher)
 - [Pierre Halm](https://github.com/Pirooooooo)
 - [Nicolas Delplanque](https://github.com/ndevplanque)

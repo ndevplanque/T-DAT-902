@@ -7,6 +7,7 @@ from streamlit_folium import folium_static
 
 map_instance = None
 
+@st.cache_resource
 def Map(data):
     _create()
     for layer in data["layers"]:

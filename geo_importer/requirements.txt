@@ -1,0 +1,5 @@
+pyspark==3.4.1
+numpy==1.24.3
+shapely
+psycopg2-binary
+python-dotenv==1.0.0

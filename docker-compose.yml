@@ -4,7 +4,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./backend:/app
     environment:
@@ -13,6 +13,8 @@ services:
       - FLASK_DEBUG=1 # For hot-reloading
     networks:
       - t-dat-902-network
+    depends_on:
+      - postgres
 
   frontend:
     build: ./frontend
@@ -21,43 +23,162 @@ services:
     volumes:
       - ./frontend:/app
     environment:
-      - STREAMLIT_SERVER_HEADLESS=true # Do not open a browser window on startup
-      - STREAMLIT_DEVELOPMENT=true # For hot-reloading
-      - STREAMLIT_SERVER_RUN_ON_SAVE=true # For hot-reloading
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_DEVELOPMENT=true
+      - STREAMLIT_SERVER_RUN_ON_SAVE=true
     depends_on:
       - backend
     networks:
       - t-dat-902-network
 
-  # Apache Hadoop (ResourceManager, NodeManager, NameNode, DataNode)
-  hadoop:
-    container_name: hadoop
-    image: harisekhon/hadoop:2.9
+  # PostgreSQL - utilise l'émulation automatique
+  postgres:
+    image: postgis/postgis:14-3.3
+    platform: linux/amd64
+    container_name: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=gis_db
+      - POSTGRES_INITDB_ARGS=--wal-segsize=1
+      - POSTGRES_INITDB_WALDIR=/var/lib/postgresql/pg_wal
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - postgres-wal:/var/lib/postgresql/pg_wal
+      - ./sql/create_polygons_tables.sql:/docker-entrypoint-initdb.d/create_polygons_tables.sql
+    networks:
+      - t-dat-902-network
+
+  # Hadoop avec platform spécifique
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    platform: linux/amd64
+    container_name: namenode
+    restart: always
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - ./geo_importer/geojson_files:/geojson_files
+    environment:
+      - CLUSTER_NAME=hadoop-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    networks:
+      - t-dat-902-network
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    platform: linux/amd64
+    container_name: datanode
+    restart: always
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+      - ./geo_importer/geojson_files:/geojson_files
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    depends_on:
+      - namenode
+    networks:
+      - t-dat-902-network
+
+  spark-master:
+    image: bitnami/spark:3.4.1
+    platform: linux/amd64
+    container_name: spark-master
     restart: always
     environment:
-      - SSH_GenerateKey=no # don't generate host keys
+      - SPARK_MODE=master
+      - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
     ports:
-      - "8042:8042"
-      - "8088:8088"
-      - "19888:19888"
-      - "50070:50070"
-      - "50075:50075"
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - ./geo_importer/jars:/opt/bitnami/spark/custom-jars
+    networks:
+      - t-dat-902-network
 
-  # Apache Spark
-  spark:
-    container_name: spark
-    image: spark:python3
-    restart: unless-stopped
-    command: /opt/spark/bin/pyspark
-    tty: true
-    stdin_open: true
-    ports:
-      - "4040:4040"
+  spark-worker:
+    image: bitnami/spark:3.4.1
+    platform: linux/amd64
+    container_name: spark-worker
+    restart: always
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - JAVA_HOME=/opt/bitnami/java
+      - SPARK_CLASSPATH=/opt/bitnami/spark/custom-jars/*
+      - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
+    depends_on:
+      - spark-master
+    volumes:
+      - ./geo_importer/jars:/opt/bitnami/spark/custom-jars
+    networks:
+      - t-dat-902-network
+
+  # HDFS Loader
+  hdfs-loader:
+    image: bde2020/hadoop-base:2.0.0-hadoop3.2.1-java8
+    platform: linux/amd64
+    container_name: hdfs-loader
+    depends_on:
+      - namenode
+      - datanode
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
+    volumes:
+      - ./geo_importer/geojson_files:/geojson_files
+      - ./geo_importer/hdfs-loader.sh:/hdfs-loader.sh
+    # Simplement exécuter le script sans chmod
+    command: bash /hdfs-loader.sh
+    networks:
+      - t-dat-902-network
+    restart: on-failure
+
+  # Geo Data Importer
+  geo-data-importer:
+    build:
+      context: ./geo_importer
+      dockerfile: Dockerfile
+    container_name: geo-data-importer
+    restart: on-failure
+    depends_on:
+      - postgres
+      - namenode
+      - datanode
+      - spark-master
+      - spark-worker
+      - hdfs-loader
+    environment:
+      - POSTGRES_DB=gis_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - SPARK_APP_NAME=GeoJSON_Import
+      - SPARK_MASTER=spark://spark-master:7077
+      - HDFS_CITIES_PATH=hdfs://namenode:9000/data/communes-1000m.geojson
+      - HDFS_DEPARTMENTS_PATH=hdfs://namenode:9000/data/departements-1000m.geojson
+      - HDFS_REGIONS_PATH=hdfs://namenode:9000/data/regions-1000m.geojson
+      - SPARK_JARS=/app/jars/postgresql-42.7.4.jar
+      - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
+    volumes:
+      - ./geo_importer:/app
+    networks:
+      - t-dat-902-network
 
 networks:
   t-dat-902-network:
     driver: bridge
 
-#volumes:
-  #mysql-volume:
-  #mongo-volume:
+volumes:
+  postgres-data:
+  postgres-wal:
+  hadoop_namenode:
+  hadoop_datanode:

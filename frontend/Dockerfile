@@ -20,4 +20,4 @@ ENV STREAMLIT_DEVELOPMENT=true
 ENV STREAMLIT_SERVER_RUN_ON_SAVE=true
 
 # Définir la commande de démarrage
-CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app/Homepedia.py", "--server.port=8501", "--server.address=0.0.0.0"]

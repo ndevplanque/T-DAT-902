@@ -7,6 +7,11 @@ from dotenv import load_dotenv
 import utils.api as api
 from components.Map import Map
 
+# Configuration de la page principale
+st.set_page_config(
+    page_icon="🏠"
+)
+
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 

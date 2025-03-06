@@ -21,4 +21,7 @@ def api_v1_example():
 
 @app.route('/api/v1/map', methods=['GET'])
 def api_v1_map():
-    return jsonify(v1_map())
+    try:
+        return jsonify(v1_map())
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404  # Retourne une 404 avec le message d'erreur

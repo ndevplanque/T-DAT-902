@@ -4,3 +4,4 @@ pandas
 folium
 streamlit_folium
 python-dotenv
+shapely

@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import folium
 import requests
+from shapely import wkt
 from utils import api
 from streamlit_folium import folium_static
 
@@ -10,8 +11,8 @@ map_instance = None
 @st.cache_resource
 def Map(data):
     _create()
-    for layer in data["layers"]:
-        _add_layer(layer)
+    for key in data["layers"]:
+        _add_layer(data["layers"][key])
     _activate_layer_control()
     _display()
 
@@ -41,24 +42,29 @@ def _get_fill_color(zone, min_price, max_price):
     index = int(normalized_price * (len(colors) - 1))
     return colors[index]
 
-def _polygon(zone, color):
-    return folium.Polygon(
-        locations=zone["coordinates"],
-        color="white",
-        weight=1,
-        fill=True,
-        fill_color=color,
-        fill_opacity=0.3,
-        popup=zone["name"]
+def _geojson(geom, name, color):
+    return folium.GeoJson(
+       data=geom.__geo_interface__,
+       style_function=lambda feature: {
+           'fillColor': color,
+           'color': 'white',
+           'weight': 1,
+           'fillOpacity': 0.5
+       },
+       tooltip=name
     )
 
 def _add_layer(layer):
-    map_layer = folium.FeatureGroup(name=layer["name"])
+    map_layer = folium.FeatureGroup(
+        name=layer["name"],
+        show=layer["shown_by_default"]
+    )
 
     for zone in layer["zones"]:
+        geom = wkt.loads(zone["geom_wkt"])
+        name = zone["name"]
         color = _get_fill_color(zone, layer["min_price"], layer["max_price"])
-        polygon = _polygon(zone, color)
-        map_layer.add_child(polygon)
+        _geojson(geom, name, color).add_to(map_layer)
 
     global map_instance
     map_instance.add_child(map_layer)

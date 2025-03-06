@@ -13,7 +13,7 @@ def v1_map():
     """Effectue la requête à l'API sans mise en cache."""
     response = requests.get(_api_v1("map"))
     if response.status_code == 200:
-            return response.json()
+        return response.json()
     return None
 
 def v1_health():

@@ -6,6 +6,13 @@ from shapely.geometry import shape, MultiPolygon, Polygon
 import psycopg2
 import time
 import socket
+import sys
+# Afficher la version Python du driver
+print(f"Driver Python version: {sys.version}")
+
+# Utiliser la même version de Python partout
+os.environ['PYSPARK_PYTHON'] = 'python3'
+os.environ['PYSPARK_DRIVER_PYTHON'] = 'python3'
 
 # -------------------------
 # Chargement des paramètres depuis l'environnement du docker
@@ -18,7 +25,6 @@ POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 
 SPARK_APP_NAME = os.getenv('SPARK_APP_NAME', 'GeoJSON_Import')
 SPARK_MASTER = os.getenv('SPARK_MASTER', 'local[*]')
-SPARK_MASTER = 'local[*]'
 SPARK_JARS = os.getenv('SPARK_JARS')
 
 HDFS_CITIES_PATH = os.getenv('HDFS_CITIES_PATH')
@@ -48,23 +54,29 @@ for i in range(max_retries):
 # Création de la session Spark avec les configurations externes
 # -------------------------
 
-# Verify if we're running in local or cluster mode
-if SPARK_MASTER == 'local[*]' or 'local' in SPARK_MASTER:
-    # Use local mode configuration
-    spark = SparkSession.builder \
-        .appName(SPARK_APP_NAME) \
-        .master('local[*]') \
-        .config("spark.jars", SPARK_JARS) \
-        .config("spark.driver.memory", "2g") \
-        .getOrCreate()
-else:
-    # Use cluster mode configuration
+# Utiliser le cluster Spark
+print("Création de la session Spark en mode cluster...")
+try:
     spark = SparkSession.builder \
         .appName(SPARK_APP_NAME) \
         .master(SPARK_MASTER) \
         .config("spark.jars", SPARK_JARS) \
         .config("spark.driver.memory", "2g") \
+        .config("spark.executor.memory", "1g") \
+        .config("spark.cores.max", "2") \
+        .config("spark.executorEnv.PYSPARK_PYTHON", "python3") \
         .getOrCreate()
+
+    print(f"Session Spark créée avec succès sur le master: {SPARK_MASTER}")
+
+    # Afficher des informations sur le cluster
+    print("Configuration du cluster Spark:")
+    print(f"Version de Spark: {spark.version}")
+    print(f"Master: {spark.sparkContext.master}")
+    print(f"Nombre d'exécuteurs disponibles: {spark.sparkContext.defaultParallelism}")
+except Exception as e:
+    print(f"Erreur lors de la création de la session Spark: {e}")
+    exit(1)
 
 print("Spark session created successfully!")
 
@@ -181,6 +193,19 @@ df_regions = df_features_regions.select(
 )
 df_regions = df_regions.withColumn("geom", geometry_to_wkt_udf(col("geometry"))) \
     .select("region_id", "name", "geom")
+
+# Code pour le partitionnement
+print("Configuration du partitionnement des données pour le traitement distribué...")
+num_partitions = 4  # Ou un nombre approprié pour vos données
+
+# Repartitionner les DataFrames
+df_cities = df_cities.repartition(num_partitions)
+df_departments = df_departments.repartition(num_partitions)
+df_regions = df_regions.repartition(num_partitions)
+
+# Contrôler explicitement l'exécution
+spark.conf.set("spark.sql.shuffle.partitions", num_partitions)
+print(f"Données repartitionnées en {num_partitions} partitions")
 
 # -------------------------
 # Fonctions d'insertion dans PostgreSQL via foreachPartition

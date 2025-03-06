@@ -102,11 +102,37 @@ services:
       - t-dat-902-network
 
   spark-worker:
-    image: bitnami/spark:3.4.1
+    build:
+      context: ./geo_importer
+      dockerfile: Dockerfile.spark-worker
     platform: linux/amd64
     container_name: spark-worker
     restart: always
     environment:
+      - PYSPARK_PYTHON=/usr/bin/python3.9
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - JAVA_HOME=/opt/bitnami/java
+      - SPARK_CLASSPATH=/opt/bitnami/spark/custom-jars/*
+      - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
+    depends_on:
+      - spark-master
+    volumes:
+      - ./geo_importer/jars:/opt/bitnami/spark/custom-jars
+    networks:
+      - t-dat-902-network
+
+  spark-worker-2:
+    build:
+      context: ./geo_importer
+      dockerfile: Dockerfile.spark-worker-2
+    platform: linux/amd64
+    container_name: spark-worker-2
+    restart: always
+    environment:
+      - PYSPARK_PYTHON=/usr/bin/python3.9
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=1G
@@ -168,6 +194,8 @@ services:
       - HDFS_REGIONS_PATH=hdfs://namenode:9000/data/regions-1000m.geojson
       - SPARK_JARS=/app/jars/postgresql-42.7.4.jar
       - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
+      - PYSPARK_PYTHON=/usr/bin/python3.9
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.9
     volumes:
       - ./geo_importer:/app
     networks:

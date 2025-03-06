@@ -70,7 +70,7 @@ m.add_child(regions_layer)
 folium.LayerControl().add_to(m)
 
 # Sauvegarder la carte dans un fichier HTML
-m.save("map_all_layers.html")
+m.save("test_map.html")
 
 cur.close()
 conn.close()

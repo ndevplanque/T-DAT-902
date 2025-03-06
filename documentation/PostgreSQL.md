@@ -58,18 +58,17 @@ CREATE INDEX idx_cities_geom ON cities USING GIST (geom);
 ### **Table `properties`**
 Stocke les annonces immobilières.
 
-| Champ        | Type         | Description |
-|-------------|-------------|-------------|
-| property_id | SERIAL (PK) | Identifiant unique de l'annonce |
-| title       | TEXT        | Titre de l'annonce |
-| description | TEXT        | Description du bien |
-| price       | NUMERIC     | Prix du bien |
-| surface     | NUMERIC     | Surface en m² |
-| rooms       | INTEGER     | Nombre de pièces |
-| address     | TEXT        | Adresse du bien |
-| city_id     | VARCHAR(10) (FK) | Clé étrangère vers `cities.city_id` |
-| scraped_at  | TIMESTAMP   | Date et heure du scraping |
-| geom        | GEOMETRY(POINT, 4326) | Localisation géocodée |
+| Champ         | Type         | Description                               |
+|---------------|-------------|-------------------------------------------|
+| property_id   | SERIAL (PK) | Identifiant unique de l'annonce           |
+| title         | TEXT        | Titre de l'annonce                        |
+| price         | NUMERIC     | Prix du bien                              |
+| surface       | NUMERIC     | Surface en m²                             |
+| rooms         | INTEGER     | Nombre de pièces                          |
+| address       | TEXT        | Adresse du bien                           |
+| city_id       | VARCHAR(10) (FK) | Clé étrangère vers `cities.city_id`       |
+| publised_date | TIMESTAMP   | Date et heure de publication de l'annonce |
+| geom          | GEOMETRY(POINT, 4326) | Localisation géocodée                     |
 
 ---
 
@@ -81,8 +80,6 @@ Stocke les photos associées aux annonces immobilières.
 | photo_id   | SERIAL (PK) | Identifiant unique de la photo |
 | property_id | INTEGER (FK) | Clé étrangère vers `properties.property_id` |
 | url        | TEXT        | URL de la photo |
-| description | TEXT        | Description de la photo |
-| uploaded_at | TIMESTAMP   | Date et heure de l'upload |
 
 ---
 

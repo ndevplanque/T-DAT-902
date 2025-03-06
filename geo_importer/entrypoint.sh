@@ -29,6 +29,8 @@ while ! nc -z spark-master 7077; do
 done
 echo "Spark est prêt !"
 
+sleep 10
+
 # Exécuter le script d'importation
 echo "Démarrage de l'importation des données géographiques..."
 python /app/geojson_processing.py

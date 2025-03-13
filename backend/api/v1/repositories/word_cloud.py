@@ -1,5 +1,4 @@
-import api.v1.repositories.postgres as postgres
-import numpy as np
+from api.v1.database.postgres import Postgres
 
 def word_cloud(entity, id):
     return {

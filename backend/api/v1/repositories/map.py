@@ -1,27 +1,15 @@
-import psycopg2
+from api.v1.database.postgres import Postgres
+import api.v1.database.queries as q
 import numpy as np
 
-conn = None
-cursor = None
-
-def _connect():
-    global conn, cursor
-    conn = psycopg2.connect(dbname='gis_db', user='postgres', password='postgres', host='host.docker.internal', port='5432')
-    cursor = conn.cursor()
-
-def _close():
-    global conn, cursor
-    cursor.close()
-    conn.close()
-
 def get_cities():
-    global cursor
-    _connect()
-    cursor.execute("SELECT city_id, name, ST_AsText(geom) FROM cities;")
+    db = Postgres()
+
     cities = []
     min_price = None
     max_price = None
-    for city_id, name, geom_wkt in cursor.fetchall():
+
+    for city_id, name, geom_wkt in db.execute(q.list_cities()):
         zone_price = generate_random_price() # En attendant d'avoir des données réelles
         # Mettre à jour min_price et max_price
         if min_price is None or zone_price < min_price:
@@ -33,17 +21,18 @@ def get_cities():
             'geom_wkt': geom_wkt,
             'price': zone_price
         })
-    _close()
+
+    db.close()
     return layer_builder("Villes", cities, min_price, max_price)
 
 def get_departments():
-    global cursor
-    _connect()
-    cursor.execute("SELECT department_id, name, ST_AsText(geom) FROM departments;")
+    db = Postgres()
+
     departments = []
     min_price = None
     max_price = None
-    for department_id, name, geom_wkt in cursor.fetchall():
+
+    for department_id, name, geom_wkt in db.execute(q.list_departments()):
         zone_price = generate_random_price() # En attendant d'avoir des données réelles
         # Mettre à jour min_price et max_price
         if min_price is None or zone_price < min_price:
@@ -55,17 +44,18 @@ def get_departments():
             'geom_wkt': geom_wkt,
             'price': zone_price
         })
-    _close()
+
+    db.close()
     return layer_builder("Départements", departments, min_price, max_price)
 
 def get_regions():
-    global cursor
-    _connect()
-    cursor.execute("SELECT region_id, name, ST_AsText(geom) FROM regions;")
+    db = Postgres()
+
     regions = []
     min_price = None
     max_price = None
-    for region_id, name, geom_wkt in cursor.fetchall():
+
+    for region_id, name, geom_wkt in db.execute(q.list_regions()):
         zone_price = generate_random_price() # En attendant d'avoir des données réelles
         # Mettre à jour min_price et max_price
         if min_price is None or zone_price < min_price:
@@ -78,7 +68,8 @@ def get_regions():
             'geom_wkt': geom_wkt,
             'price': zone_price
         })
-    _close()
+
+    db.close()
     return layer_builder("Régions", regions, min_price, max_price)
 
 # Générer un prix aléatoire entre 1500 et 6000 €/m² pour chaque zone avec numpy

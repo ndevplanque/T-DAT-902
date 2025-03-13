@@ -25,3 +25,15 @@ def api_v1_map():
         return jsonify(v1_map())
     except ValueError as e:
         return jsonify({"error": str(e)}), 404  # Retourne une 404 avec le message d'erreur
+
+# Handler générique pour les erreurs
+@app.errorhandler(Exception)
+def handle_exception(e):
+    error_name = str(e)
+    error_code = str(e).split(" ")[0]
+    if error_code.isdigit():
+        error_code = int(error_code)
+        error_name = error_name.split(":", 1)[0].split(" ", 1)[1].strip()
+    else:
+        error_code = 500
+    return jsonify({"error": error_name, "code": error_code}), error_code

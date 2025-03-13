@@ -16,6 +16,12 @@ def v1_map():
         return response.json()
     return None
 
+def v1_word_cloud(entity, id):
+    response = requests.get(_api_v1(f"word-cloud/{entity}/{id}"))
+    if response.status_code == 200:
+        return response.json()
+    return None
+
 def v1_health():
     response = requests.get(_api_v1("health"))
     if response.status_code == 200:

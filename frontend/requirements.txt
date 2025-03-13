@@ -5,3 +5,5 @@ folium
 streamlit_folium
 python-dotenv
 shapely
+wordcloud
+matplotlib

@@ -1,6 +1,6 @@
 from api.v1.database.postgres import Postgres
 
-def word_cloud(entity, id):
+def get_word_cloud(entity, id):
     return {
         'Lorem' : 100,
         'Ipsum' : 80,

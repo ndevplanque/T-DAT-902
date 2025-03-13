@@ -4,6 +4,6 @@ import api.v1.repositories.word_cloud as repository
 
 def word_cloud(entity, id):
     if entity not in ["cities", "departments", "regions"]:
-            raise ValueError("Entity doit être 'cities', 'departments' ou 'regions'")
+        raise ValueError("Les nuages de mots ne sont disponibles que pour les 'cities', 'departments' ou 'regions'")
 
     return repository.word_cloud(entity, id)

@@ -42,16 +42,16 @@ def _get_fill_color(zone, min_price, max_price):
     index = int(normalized_price * (len(colors) - 1))
     return colors[index]
 
-def _geojson(geom, name, color):
+def _geojson(zone, min_price, max_price):
     return folium.GeoJson(
-       data=geom.__geo_interface__,
+       data=wkt.loads(zone["geom_wkt"]).__geo_interface__,
        style_function=lambda feature: {
-           'fillColor': color,
+           'fillColor': _get_fill_color(zone["price"], min_price, max_price),
            'color': 'white',
            'weight': 1,
            'fillOpacity': 0.5
        },
-       tooltip=name
+       tooltip=zone["name"]
     )
 
 def _add_layer(layer):
@@ -61,10 +61,7 @@ def _add_layer(layer):
     )
 
     for zone in layer["zones"]:
-        geom = wkt.loads(zone["geom_wkt"])
-        name = zone["name"]
-        color = _get_fill_color(zone, layer["min_price"], layer["max_price"])
-        _geojson(geom, name, color).add_to(map_layer)
+        _geojson(zone, layer["min_price"], layer["max_price"]).add_to(map_layer)
 
     global map_instance
     map_instance.add_child(map_layer)

@@ -11,7 +11,8 @@ def LayerTable(data):
         st.error("Données invalides ou indisponibles.")
         return
 
-    for layer in data["layers"]:
+    for key in data["layers"]:
+        layer = data["layers"][key]
         with st.expander(f"📍 {layer['name']} (Min: {layer['min_price']}€ | Max: {layer['max_price']}€)", expanded=False):
             # Transformation des données en DataFrame
             data_list = [{

@@ -26,7 +26,7 @@ def api_v1_map():
 
 @app.route('/api/v1/word-cloud/<entity>/<id>', methods=['GET'])
 def api_v1_word_cloud(entity, id):
-    return jsonify(v1_word_cloud())
+    return jsonify(v1_word_cloud(entity, id))
 
 # Handler générique pour les erreurs
 @app.errorhandler(Exception)

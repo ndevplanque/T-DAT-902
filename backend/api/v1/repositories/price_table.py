@@ -5,7 +5,7 @@ import numpy as np
 def get_cities_prices():
     db = Postgres()
 
-    cities = []
+    items = []
     min_price = None
     max_price = None
 
@@ -16,18 +16,23 @@ def get_cities_prices():
             min_price = zone_price
         if max_price is None or zone_price > max_price:
             max_price = zone_price
-        cities.append({
+        items.append({
             'name': name,
             'price': zone_price
         })
 
+    aggs = {
+        "min_price": min_price,
+        "max_price": max_price,
+    }
+
     db.close()
-    return response_builder("Villes", cities, min_price, max_price)
+    return response_builder("Villes", items, aggs)
 
 def get_departments_prices():
     db = Postgres()
 
-    departments = []
+    items = []
     min_price = None
     max_price = None
 
@@ -38,18 +43,23 @@ def get_departments_prices():
             min_price = zone_price
         if max_price is None or zone_price > max_price:
             max_price = zone_price
-        departments.append({
+        items.append({
             'name': name,
             'price': zone_price
         })
 
+    aggs = {
+        "min_price": min_price,
+        "max_price": max_price,
+    }
+
     db.close()
-    return response_builder("Départements", departments, min_price, max_price)
+    return response_builder("Départements", items, aggs)
 
 def get_regions_prices():
     db = Postgres()
 
-    regions = []
+    items = []
     min_price = None
     max_price = None
 
@@ -61,22 +71,26 @@ def get_regions_prices():
         if max_price is None or zone_price > max_price:
             max_price = zone_price
         # Ajouter le nom et les coordonnées de la zone à la liste
-        regions.append({
+        items.append({
             'name': name,
             'price': zone_price
         })
 
+    aggs = {
+        "min_price": min_price,
+        "max_price": max_price,
+    }
+
     db.close()
-    return response_builder("Régions", regions, min_price, max_price)
+    return response_builder("Régions", items, aggs)
 
 # Générer un prix aléatoire entre 1500 et 6000 €/m² pour chaque zone avec numpy
 def generate_random_price():
     return round(np.random.uniform(1500, 6000), 2)
 
-def response_builder(name, zones, min_price, max_price):
+def response_builder(display_name, items, aggs):
     return {
-        "name": name,
-        "zones": zones,
-        "min_price": min_price,
-        "max_price": max_price,
+        "display_name": display_name,
+        "items": items,
+        "aggs": aggs,
     }

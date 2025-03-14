@@ -9,12 +9,12 @@ def PriceTable(data):
 
     for key in data["price_table"]:
         table = data["price_table"][key]
-        with st.expander(f"📍 {table['title']} (Min: {layer['aggs']['min']}€ | Max: {layer['aggs']['max']}€)", expanded=False):
+        with st.expander(f"📍 {table['title']} (Min: {table['aggs']['min_price']}€ | Max: {table['aggs']['max_price']}€)", expanded=False):
             # Transformation des données en DataFrame
             data_list = [{
                 "Zone": zone["name"],
                 "Prix (€/m²)": zone["price"]
-            } for zone in layer["items"]]
+            } for zone in table["items"]]
 
             df = pd.DataFrame(data_list)
 

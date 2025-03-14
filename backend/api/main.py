@@ -15,11 +15,11 @@ def root():
 
 @app.route('/api/v1/health', methods=['GET'])
 def api_v1_health():
-    return jsonify(v1_health())
+    return v1_health()
 
 @app.route('/api/v1/example', methods=['GET'])
 def api_v1_example():
-    return jsonify(v1_example())
+    return v1_example()
 
 @app.route('/api/v1/map', methods=['GET'])
 def api_v1_map():
@@ -27,11 +27,11 @@ def api_v1_map():
 
 @app.route('/api/v1/price-tables', methods=['GET'])
 def api_v1_price_table():
-    return jsonify(v1_price_tables())
+    return v1_price_tables()
 
 @app.route('/api/v1/word-cloud/<entity>/<id>', methods=['GET'])
 def api_v1_word_cloud(entity, id):
-    return jsonify(v1_word_cloud(entity, id))
+    return v1_word_cloud(entity, id)
 
 # Handler générique pour les erreurs
 @app.errorhandler(Exception)

@@ -77,8 +77,8 @@ def get_regions_prices():
         })
 
     aggs = {
-        "min_price": min_price,
-        "max_price": max_price,
+        "min": min_price,
+        "max": max_price,
     }
 
     db.close()

@@ -19,6 +19,12 @@ def v1_map():
         return response.text  # Retourne directement le HTML
     return None
 
+def v1_price_table():
+    response = requests.get(_api_v1("price-table"))
+    if response.status_code == 200:
+        return response.json()
+    return None
+
 def v1_word_cloud(entity, id):
     response = requests.get(v1(f"word-cloud/{entity}/{id}"))
     if response.status_code == 200:

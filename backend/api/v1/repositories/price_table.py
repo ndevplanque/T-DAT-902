@@ -2,7 +2,7 @@ from api.v1.database.postgres import Postgres
 import api.v1.database.queries as q
 import numpy as np
 
-def get_cities():
+def get_cities_prices():
     db = Postgres()
 
     cities = []
@@ -24,7 +24,7 @@ def get_cities():
     db.close()
     return response_builder("Villes", cities, min_price, max_price)
 
-def get_departments():
+def get_departments_prices():
     db = Postgres()
 
     departments = []
@@ -46,7 +46,7 @@ def get_departments():
     db.close()
     return response_builder("Départements", departments, min_price, max_price)
 
-def get_regions():
+def get_regions_prices():
     db = Postgres()
 
     regions = []

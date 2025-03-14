@@ -3,12 +3,11 @@ import pandas as pd
 
 def PriceTable(data):
     """ Affiche un tableau interactif des prix immobiliers. """
-    if not data or "price_table" not in data:
+    if not data or "price_tables" not in data:
         st.error("Données invalides ou indisponibles.")
         return
 
-    for key in data["price_table"]:
-        table = data["price_table"][key]
+    for table in data["price_tables"]:
         with st.expander(f"📍 {table['title']} (Min: {table['aggs']['min_price']}€ | Max: {table['aggs']['max_price']}€)", expanded=False):
             # Transformation des données en DataFrame
             data_list = [{

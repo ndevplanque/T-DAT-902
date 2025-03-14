@@ -16,9 +16,5 @@ def price_table():
         raise ValueError("Erreur : La liste 'cities' est vide.")
 
     return {
-        "price_table": {
-            "regions": regions,
-            "departments": departments,
-            "cities": cities,
-        }
+        "price_tables": [regions, departments, cities]
     }

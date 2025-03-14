@@ -19,8 +19,8 @@ def v1_map():
         return response.text  # Retourne directement le HTML
     return None
 
-def v1_price_table():
-    response = requests.get(_api_v1("price-table"))
+def v1_price_tables():
+    response = requests.get(_api_v1("price-tables"))
     if response.status_code == 200:
         return response.json()
     return None

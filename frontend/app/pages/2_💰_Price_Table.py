@@ -5,9 +5,9 @@ from components.PriceTable import PriceTable
 st.title("Tableau des Prix Immobiliers 💰")
 
 try:
-    prices_data = cache.get_prices_data()
-    if prices_data is not None:
-        PriceTable(prices_data)
+    price_tables = cache.get_price_tables()
+    if price_tables is not None:
+        PriceTable(price_tables)
     else:
         st.error("Impossible de récupérer les données.")
 except RuntimeError as e:

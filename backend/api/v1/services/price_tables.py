@@ -1,18 +1,18 @@
 from flask import jsonify
 import json
-import api.v1.repositories.price_table as repository
+import api.v1.repositories.price_tables as repository
 
-def price_table():
+def price_tables():
     regions = repository.get_regions_prices()
-    if "zones" in regions and isinstance(regions["zones"], list) and not regions["zones"]:
+    if "items" in regions and isinstance(regions["items"], list) and not regions["items"]:
         raise ValueError("Erreur : La liste 'regions' est vide.")
 
     departments = repository.get_departments_prices()
-    if "zones" in departments and isinstance(departments["zones"], list) and not departments["zones"]:
+    if "items" in departments and isinstance(departments["items"], list) and not departments["items"]:
         raise ValueError("Erreur : La liste 'departments' est vide.")
 
     cities = repository.get_cities_prices()
-    if "zones" in cities and isinstance(cities["zones"], list) and not cities["zones"]:
+    if "items" in cities and isinstance(cities["items"], list) and not cities["items"]:
         raise ValueError("Erreur : La liste 'cities' est vide.")
 
     return {

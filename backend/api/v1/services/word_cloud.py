@@ -10,6 +10,8 @@ def word_cloud(entity, id):
 
     # Récupérer les fréquences des mots
     freqs = repository.get_word_cloud(entity, id)
+
+    # Vérification des données
     if not freqs or not all(isinstance(freqs.get(key), int) for key in freqs):
         raise ValueError("Données invalides.")
 

@@ -1,6 +1,5 @@
 import streamlit as st
 from utils import api
-from components.WordCloud import WordCloud
 
 st.title("Nuage de Mots 🌧️")
 

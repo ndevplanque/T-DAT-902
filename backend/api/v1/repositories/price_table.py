@@ -88,9 +88,9 @@ def get_regions_prices():
 def generate_random_price():
     return round(np.random.uniform(1500, 6000), 2)
 
-def response_builder(display_name, items, aggs):
+def response_builder(title, items, aggs):
     return {
-        "display_name": display_name,
+        "title": title,
         "items": items,
         "aggs": aggs,
     }

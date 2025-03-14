@@ -83,7 +83,7 @@ def populate_map(map_instance, data):
             continue  # Si la couche ne contient pas de zones, on passe à la suivante
 
         map_layer = folium.FeatureGroup(
-            name=layer["name"]
+            name=layer["name"],
             show=layer["shown_by_default"]
         )
         for zone in layer["zones"]:

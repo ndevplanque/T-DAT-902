@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from api.v1.services.health import health as v1_health
 from api.v1.services.example import example as v1_example
-from api.v1.services.map import map as v1_map
+import api.v1.services.map as v1_map
 from api.v1.services.word_cloud import word_cloud as v1_word_cloud
 
 app = Flask(__name__)
@@ -22,7 +22,7 @@ def api_v1_example():
 
 @app.route('/api/v1/map', methods=['GET'])
 def api_v1_map():
-    return jsonify(v1_map())
+    return v1_map.send_html()
 
 @app.route('/api/v1/word-cloud/<entity>/<id>', methods=['GET'])
 def api_v1_word_cloud(entity, id):
@@ -39,3 +39,5 @@ def handle_exception(e):
     else:
         error_code = 500
     return jsonify({"error": error_name, "code": error_code}), error_code
+
+v1_map.init()

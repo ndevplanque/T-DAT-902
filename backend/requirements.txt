@@ -2,5 +2,9 @@ flask
 pandas
 numpy
 psycopg2-binary
+folium
+python-dotenv
+shapely
+logging
 pytest
 pytest-mock

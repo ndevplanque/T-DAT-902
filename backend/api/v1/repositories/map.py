@@ -86,4 +86,4 @@ def layer_builder(name, zones, min_price, max_price):
     }
 
 def is_shown(name):
-    return name == "Départements"
+    return name == "Villes"

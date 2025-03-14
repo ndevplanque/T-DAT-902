@@ -1,6 +1,9 @@
 import os
+from dotenv import load_dotenv
 import streamlit as st
 import requests
+
+load_dotenv()
 
 def v1(endpoint):
     return _api_v1(endpoint)
@@ -12,6 +15,12 @@ def _api_v1(endpoint):
 def v1_map():
     """Effectue la requête à l'API sans mise en cache."""
     response = requests.get(_api_v1("map"))
+    if response.status_code == 200:
+        return response.json()
+    return None
+
+def v1_word_cloud(entity, id):
+    response = requests.get(v1(f"word-cloud/{entity}/{id}"))
     if response.status_code == 200:
         return response.json()
     return None

@@ -37,8 +37,8 @@ def _create():
 # Utilisation d'une échelle de couleurs douces, du vert au rouge
 colors = ["#060", "#282", "#3C3", "#7F0", "#AF2", "#FF0", "#FD0", "#FA0", "#F80", "#F64", "#F40", "#F00"]
 
-def _get_fill_color(zone, min_price, max_price):
-    normalized_price = (zone["price"] - min_price) / (max_price - min_price)
+def _get_fill_color(zone_price, min_price, max_price):
+    normalized_price = (zone_price - min_price) / (max_price - min_price)
     index = int(normalized_price * (len(colors) - 1))
     return colors[index]
 

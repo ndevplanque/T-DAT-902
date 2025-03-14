@@ -31,8 +31,7 @@ Install the following dependencies:
 Run the following command:
 
 ```sh
-cd backend
-pytest
+pytest backend
 ```
 
 ### Data integrity tests

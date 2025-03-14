@@ -1,0 +1,267 @@
+[
+    {
+        "ville_nom": "Avis Gradignan 33170",
+        "sentiments": {
+            "positif": 19,
+            "neutre": 2,
+            "negatif": 0,
+            "positif_percent": 90.5,
+            "neutre_percent": 9.5,
+            "negatif_percent": 0.0
+        },
+        "top_mots": [
+            {
+                "mot": "ville",
+                "poids": 32
+            },
+            {
+                "mot": "bordeaux",
+                "poids": 10
+            },
+            {
+                "mot": "centre",
+                "poids": 10
+            },
+            {
+                "mot": "parc",
+                "poids": 8
+            },
+            {
+                "mot": "agr\u00e9able",
+                "poids": 8
+            },
+            {
+                "mot": "commerce",
+                "poids": 7
+            },
+            {
+                "mot": "gradignan",
+                "poids": 7
+            },
+            {
+                "mot": "proximit\u00e9",
+                "poids": 7
+            },
+            {
+                "mot": "vert",
+                "poids": 5
+            },
+            {
+                "mot": "public",
+                "poids": 5
+            }
+        ]
+    },
+    {
+        "ville_nom": "Avis La Bourboule 63150",
+        "sentiments": {
+            "positif": 13,
+            "neutre": 5,
+            "negatif": 0,
+            "positif_percent": 72.2,
+            "neutre_percent": 27.8,
+            "negatif_percent": 0.0
+        },
+        "top_mots": [
+            {
+                "mot": "ville",
+                "poids": 16
+            },
+            {
+                "mot": "bel",
+                "poids": 6
+            },
+            {
+                "mot": "grand",
+                "poids": 5
+            },
+            {
+                "mot": "petit",
+                "poids": 4
+            },
+            {
+                "mot": "thermal",
+                "poids": 4
+            },
+            {
+                "mot": "cure",
+                "poids": 4
+            },
+            {
+                "mot": "beau",
+                "poids": 4
+            },
+            {
+                "mot": "magnifique",
+                "poids": 4
+            },
+            {
+                "mot": "commerce",
+                "poids": 3
+            },
+            {
+                "mot": "ambiance",
+                "poids": 3
+            }
+        ]
+    },
+    {
+        "ville_nom": "Avis Viroflay 78220",
+        "sentiments": {
+            "positif": 10,
+            "neutre": 3,
+            "negatif": 0,
+            "positif_percent": 76.9,
+            "neutre_percent": 23.1,
+            "negatif_percent": 0.0
+        },
+        "top_mots": [
+            {
+                "mot": "ville",
+                "poids": 17
+            },
+            {
+                "mot": "agr\u00e9able",
+                "poids": 9
+            },
+            {
+                "mot": "desservie",
+                "poids": 5
+            },
+            {
+                "mot": "\u00e9cole",
+                "poids": 4
+            },
+            {
+                "mot": "bon",
+                "poids": 3
+            },
+            {
+                "mot": "tramway",
+                "poids": 3
+            },
+            {
+                "mot": "proximit\u00e9",
+                "poids": 3
+            },
+            {
+                "mot": "quartier",
+                "poids": 3
+            },
+            {
+                "mot": "famille",
+                "poids": 2
+            },
+            {
+                "mot": "espace",
+                "poids": 2
+            }
+        ]
+    },
+    {
+        "ville_nom": "Avis Mont\u00e9vrain 77144",
+        "sentiments": {
+            "positif": 9,
+            "neutre": 3,
+            "negatif": 1,
+            "positif_percent": 69.2,
+            "neutre_percent": 23.1,
+            "negatif_percent": 7.7
+        },
+        "top_mots": [
+            {
+                "mot": "ville",
+                "poids": 24
+            },
+            {
+                "mot": "commerce",
+                "poids": 7
+            },
+            {
+                "mot": "paris",
+                "poids": 5
+            },
+            {
+                "mot": "centre",
+                "poids": 4
+            },
+            {
+                "mot": "bourg",
+                "poids": 4
+            },
+            {
+                "mot": "bon",
+                "poids": 4
+            },
+            {
+                "mot": "montevrain",
+                "poids": 4
+            },
+            {
+                "mot": "quartier",
+                "poids": 3
+            },
+            {
+                "mot": "espace",
+                "poids": 3
+            },
+            {
+                "mot": "transport",
+                "poids": 3
+            }
+        ]
+    },
+    {
+        "ville_nom": "Avis Paray-le-Monial 71600",
+        "sentiments": {
+            "positif": 36,
+            "neutre": 10,
+            "negatif": 2,
+            "positif_percent": 75.0,
+            "neutre_percent": 20.8,
+            "negatif_percent": 4.2
+        },
+        "top_mots": [
+            {
+                "mot": "ville",
+                "poids": 132
+            },
+            {
+                "mot": "digoin",
+                "poids": 27
+            },
+            {
+                "mot": "parc",
+                "poids": 26
+            },
+            {
+                "mot": "bel",
+                "poids": 21
+            },
+            {
+                "mot": "calme",
+                "poids": 21
+            },
+            {
+                "mot": "rue",
+                "poids": 20
+            },
+            {
+                "mot": "grand",
+                "poids": 19
+            },
+            {
+                "mot": "paray",
+                "poids": 16
+            },
+            {
+                "mot": "petit",
+                "poids": 15
+            },
+            {
+                "mot": "circulation",
+                "poids": 14
+            }
+        ]
+    }
+]

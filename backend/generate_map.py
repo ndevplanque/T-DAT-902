@@ -7,6 +7,8 @@ from shapely.geometry import shape, Polygon
 import api.v1.repositories.map as repository
 from flask import send_file
 
+# A exécuter depuis le container Docker "backend", en allant dans Exec, puis écrire "python3 generate_map.py"
+
 load_dotenv()
 V1_MAP_FILEPATH = os.getenv('V1_MAP_FILEPATH')
 COLORS = ["#060", "#282", "#3C3", "#7F0", "#AF2", "#FF0", "#FD0", "#FA0", "#F80", "#F64", "#F40", "#F00"]

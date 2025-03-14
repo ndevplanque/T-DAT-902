@@ -13,8 +13,14 @@ def _api_v1(endpoint):
     return f"{url}/{endpoint}"
 
 def v1_map():
-    """Effectue la requête à l'API sans mise en cache."""
+    """Récupère la carte HTML depuis l'API et retourne son contenu sous forme de texte."""
     response = requests.get(_api_v1("map"))
+    if response.status_code == 200:
+        return response.text  # Retourne directement le HTML
+    return None
+
+def v1_price_tables():
+    response = requests.get(_api_v1("price-tables"))
     if response.status_code == 200:
         return response.json()
     return None

@@ -1,11 +1,12 @@
+from dotenv import load_dotenv
 from flask import Flask, jsonify
-import pandas as pd
-import numpy as np
 from api.v1.services.health import health as v1_health
 from api.v1.services.example import example as v1_example
-from api.v1.services.map import map as v1_map
+from api.v1.services.map import map as v1_map_html
+from api.v1.services.price_tables import price_tables as v1_price_tables
 from api.v1.services.word_cloud import word_cloud as v1_word_cloud
 
+load_dotenv()
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
@@ -22,7 +23,11 @@ def api_v1_example():
 
 @app.route('/api/v1/map', methods=['GET'])
 def api_v1_map():
-    return jsonify(v1_map())
+    return v1_map_html()
+
+@app.route('/api/v1/price-tables', methods=['GET'])
+def api_v1_price_table():
+    return jsonify(v1_price_tables())
 
 @app.route('/api/v1/word-cloud/<entity>/<id>', methods=['GET'])
 def api_v1_word_cloud(entity, id):

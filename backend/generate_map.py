@@ -78,11 +78,14 @@ def create_map():
 
 def populate_map(map_instance, data):
     """Ajoute les couches de données à la carte."""
-    for layer_name, layer in data["layers"].items():
+    for key, layer in data["layers"].items():
         if "zones" not in layer:
             continue  # Si la couche ne contient pas de zones, on passe à la suivante
 
-        map_layer = folium.FeatureGroup(name=layer_name)
+        map_layer = folium.FeatureGroup(
+            name=layer["name"]
+            show=layer["shown_by_default"]
+        )
         for zone in layer["zones"]:
             if "geom_wkt" not in zone or "price" not in zone:  # Vérification de la présence des données essentielles
                 continue

@@ -40,8 +40,9 @@ def v1_word_cloud(entity, id):
         return image
     return None
 
-def v1_health():
-    response = requests.get(_api_v1("health"))
+def v1_sentiments(entity, id):
+    response = requests.get(v1(f"sentiments/{entity}/{id}"))
     if response.status_code == 200:
-        return response.json()
+        image = Image.open(BytesIO(response.content))
+        return image
     return None

@@ -12,8 +12,6 @@ V1_MAP_FILEPATH = os.getenv('V1_MAP_FILEPATH')
 COLORS = ["#060", "#282", "#3C3", "#7F0", "#AF2", "#FF0", "#FD0", "#FA0", "#F80", "#F64", "#F40", "#F00"]
 logging.basicConfig(level=logging.INFO)
 
-build_map()  # Génère la carte
-
 def build_map():
     """Construit la carte en utilisant les données de la base de données."""
 
@@ -89,26 +87,26 @@ def populate_map(map_instance, data):
 
             zone_geometry = shape(wkt.loads(zone["geom_wkt"]))
             simplified_geometry = simplify_geometry(zone_geometry, tolerance=0.01)  # Simplification avec tolérance
-            geojson(simplified_geometry, zone["price"], layer["min_price"], layer["max_price"], COLORS).add_to(map_layer)
+            geojson(simplified_geometry, zone, layer["min_price"], layer["max_price"]).add_to(map_layer)
         map_instance.add_child(map_layer)
 
     folium.LayerControl().add_to(map_instance)
 
     return map_instance
 
-def get_fill_color(zone_price, min_price, max_price, colors):
+def get_fill_color(zone_price, min_price, max_price):
     """Calcule la couleur de remplissage d'une zone en fonction de son prix."""
     if min_price == max_price:  # Évite la division par zéro
-        return colors[-1]
+        return COLORS[-1]
     normalized_price = (zone_price - min_price) / (max_price - min_price)
-    return colors[int(normalized_price * (len(colors) - 1))]
+    return COLORS[int(normalized_price * (len(COLORS) - 1))]
 
-def geojson(zone, min_price, max_price, colors):
+def geojson(coords, zone, min_price, max_price):
     """Retourne un objet GeoJson configuré pour une zone donnée."""
     return folium.GeoJson(
-        data=zone.__geo_interface__,
+        data=coords.__geo_interface__,
         style_function=lambda feature: {
-            'fillColor': get_fill_color(zone["price"], min_price, max_price, colors),
+            'fillColor': get_fill_color(zone["price"], min_price, max_price),
             'color': 'white',
             'weight': 1,
             'fillOpacity': 0.5
@@ -124,3 +122,5 @@ def simplify_geometry(geometry, tolerance=0.01):
         # Si la géométrie n'est pas un polygone, la renvoyer telle quelle.
         # (On peut éventuellement ajouter un traitement pour d'autres types de géométries)
         return geometry
+
+build_map()  # Génère la carte

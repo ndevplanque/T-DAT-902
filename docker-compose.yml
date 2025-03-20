@@ -4,7 +4,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./backend:/app
     environment:
@@ -161,7 +161,6 @@ services:
     volumes:
       - ./geo_importer/geojson_files:/geojson_files
       - ./geo_importer/hdfs-loader.sh:/hdfs-loader.sh
-    # Simplement exécuter le script sans chmod
     command: bash /hdfs-loader.sh
     networks:
       - t-dat-902-network
@@ -201,6 +200,157 @@ services:
     networks:
       - t-dat-902-network
 
+  # MongoDB pour stocker les avis scraped
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=rootpassword
+    volumes:
+      - mongodb_data:/data/db
+      - ./avis-scraper/mongo-dump:/dump  # Monter le répertoire avec les dumps MongoDB
+    networks:
+      - t-dat-902-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/admin -u root -p rootpassword --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Service de restauration MongoDB qui s'exécute conditionnellement
+  mongodb-restore:
+    image: mongo:latest
+    container_name: mongodb-restore
+    restart: "no"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./avis-scraper/mongo-dump:/dump  # Monter le répertoire avec les dumps MongoDB
+    command: |
+      bash -c '
+      if [ "$USE_MONGODB_DUMP" = "true" ]; then
+        echo "Restauration du dump MongoDB..."
+        if [ -d "/dump/villes_france" ]; then
+          mongorestore --host mongodb --port 27017 --username root --password rootpassword --authenticationDatabase admin --db villes_france /dump/villes_france
+          echo "Restauration terminée!"
+        else
+          echo "ERREUR: Le dump MongoDB n existe pas à l emplacement /dump/villes_france"
+          echo "Assurez-vous que le dump existe dans le répertoire avis-scraper/mongo-dump/villes_france/"
+          exit 1
+        fi
+      else
+        echo "Restauration ignorée - le scraping sera utilisé à la place."
+      fi
+      '
+    environment:
+      - USE_MONGODB_DUMP=${USE_MONGODB_DUMP:-false}
+    networks:
+      - t-dat-902-network
+
+  # Service de scraping des avis - conditionnel en fonction de USE_SCRAPER
+  avis-scraper:
+    build:
+      context: ./avis-scraper
+      dockerfile: Dockerfile
+    container_name: avis-scraper
+    restart: on-failure
+    environment:
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
+      - MONGO_DB=villes_france
+      - MAX_VILLES=${MAX_VILLES:-0}  # Limiter pour le test, mettre à 0 pour tout scraper
+      - MAX_WORKERS=${MAX_WORKERS:-8}  # Nombre de threads parallèles
+      - TEST_MODE=${TEST_MODE:-false}  # Activer/désactiver le mode test
+      - UPDATE_MODE=${UPDATE_MODE:-false}  # Activer/désactiver le mode mise à jour
+      - ENABLE_SCRAPER=${ENABLE_SCRAPER:-true}  # Nouvelle variable pour activer/désactiver le scraper
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      mongodb-restore:
+        condition: service_completed_successfully
+    volumes:
+      - ./avis-scraper:/app
+      - ./logs:/app/logs
+    networks:
+      - t-dat-902-network
+    # Utiliser une condition d'entrypoint pour exécuter ou non le scraper
+    entrypoint: |
+      sh -c '
+      if [ "$ENABLE_SCRAPER" = "true" ]; then
+        echo "Démarrage du scraper..."
+        python /app/scraper.py
+      else
+        echo "Scraper désactivé - utilisation des données du dump."
+        exit 0
+      fi
+      '
+
+  avis-data-validator:
+    build:
+      context: ./avis-scraper/validation
+      dockerfile: Dockerfile
+    container_name: avis-data-validator
+    volumes:
+      - ./avis-scraper/validation:/app
+      - ./logs:/app/logs
+    environment:
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
+      - MONGO_DB=villes_france
+    networks:
+      - t-dat-902-network
+    depends_on:
+      - mongodb
+      - avis-scraper
+
+  # Service pour soumettre le job de traitement aux workers Spark existants
+  avis-processor-submitter:
+    build:
+      context: ./avis-processor
+      dockerfile: Dockerfile
+    container_name: avis-processor-submitter
+    restart: on-failure
+    environment:
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
+      - MONGO_DB=villes_france
+      - SPARK_MASTER=spark://spark-master:7077
+      - WAIT_FOR_SCRAPER=${ENABLE_SCRAPER:-true}  # Ne pas attendre le scraper s'il est désactivé
+    depends_on:
+      - mongodb
+      - spark-master
+      - spark-worker
+      - spark-worker-2
+      - avis-scraper
+    volumes:
+      - ./avis-processor:/app
+      - ./logs:/app/logs
+    networks:
+      - t-dat-902-network
+
+  # Service de validation des données traitées pour le nuage de mots
+  avis-processor-validator:
+    build:
+      context: ./avis-processor/validation
+      dockerfile: Dockerfile
+    container_name: avis-processor-validator
+    volumes:
+      - ./avis-processor/validation:/app
+      - ./logs:/app/logs
+      - ./avis-processor/validation/results:/app/results
+    environment:
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
+      - MONGO_DB=villes_france
+      - OUTPUT_DIR=/app/results
+    networks:
+      - t-dat-902-network
+    depends_on:
+      - mongodb
+      - avis-processor-submitter
+
 networks:
   t-dat-902-network:
     driver: bridge
@@ -210,3 +360,4 @@ volumes:
   postgres-wal:
   hadoop_namenode:
   hadoop_datanode:
+  mongodb_data:

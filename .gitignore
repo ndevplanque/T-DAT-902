@@ -1,7 +1,7 @@
-.env
 node_modules
 .idea
 .DS_Store
 data/venv
 *.pyc
 **/__pycache__/
+logs/

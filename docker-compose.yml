@@ -200,6 +200,32 @@ services:
       - ./geo_importer:/app
     networks:
       - t-dat-902-network
+      
+  # Service d'importation de données immobilières
+  properties-importer:
+   build: ./properties
+   container_name: properties-importer
+   #restart: on-failure
+   depends_on:
+     - postgres
+     - spark-master
+     - spark-worker
+   environment:
+     - POSTGRES_DB=gis_db
+     - POSTGRES_USER=postgres
+     - POSTGRES_PASSWORD=postgres
+     - POSTGRES_HOST=postgres
+     - POSTGRES_PORT=5432
+     - SPARK_MASTER=spark://spark-master:7077
+     - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
+     - PYSPARK_PYTHON=/usr/bin/python3
+     - PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+   volumes:
+     - ./properties:/app
+     - ./geo_importer/jars:/opt/bitnami/spark/custom-jars
+     - ./properties/CSV_DVF:/app/CSV_DVF
+   networks:
+    - t-dat-902-network
 
 networks:
   t-dat-902-network:

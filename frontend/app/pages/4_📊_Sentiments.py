@@ -1,9 +1,9 @@
 import streamlit as st
 from utils import api
 
-st.title("Nuage de Mots 🌧️")
+st.title("Sentiments 📊")
 
-image = api.v1_word_cloud("cities", 123)
+image = api.v1_sentiments("cities", 123)
 if image is not None:
     st.write(image)
 else:

@@ -5,6 +5,7 @@ from api.v1.services.example import example as v1_example
 from api.v1.services.map import map as v1_map_html
 from api.v1.services.price_tables import price_tables as v1_price_tables
 from api.v1.services.word_cloud import word_cloud as v1_word_cloud
+from api.v1.services.sentiments import sentiments as v1_sentiments
 
 load_dotenv()
 app = Flask(__name__)
@@ -15,11 +16,11 @@ def root():
 
 @app.route('/api/v1/health', methods=['GET'])
 def api_v1_health():
-    return jsonify(v1_health())
+    return v1_health()
 
 @app.route('/api/v1/example', methods=['GET'])
 def api_v1_example():
-    return jsonify(v1_example())
+    return v1_example()
 
 @app.route('/api/v1/map', methods=['GET'])
 def api_v1_map():
@@ -27,11 +28,15 @@ def api_v1_map():
 
 @app.route('/api/v1/price-tables', methods=['GET'])
 def api_v1_price_table():
-    return jsonify(v1_price_tables())
+    return v1_price_tables()
 
 @app.route('/api/v1/word-cloud/<entity>/<id>', methods=['GET'])
 def api_v1_word_cloud(entity, id):
-    return jsonify(v1_word_cloud(entity, id))
+    return v1_word_cloud(entity, id)
+
+@app.route('/api/v1/sentiments/<entity>/<id>', methods=['GET'])
+def api_v1_sentiments(entity, id):
+    return v1_sentiments(entity, id)
 
 # Handler générique pour les erreurs
 @app.errorhandler(Exception)

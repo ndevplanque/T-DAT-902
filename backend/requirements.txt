@@ -2,5 +2,10 @@ flask
 pandas
 numpy
 psycopg2-binary
+folium
+python-dotenv
+matplotlib
+shapely
+wordcloud
 pytest
 pytest-mock

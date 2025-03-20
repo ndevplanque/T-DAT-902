@@ -1,5 +1,6 @@
 import pytest
-from api.main import app
+from flask import Response
+from api.main import app, handle_exception
 
 # Test client Flask
 @pytest.fixture
@@ -28,9 +29,43 @@ def test_api_v1_example(client, mocker):
 
 # Test pour l'endpoint /api/v1/map
 def test_api_v1_map(client, mocker):
-    # Patch la fonction map et retourne une valeur compatible JSON
-    mock_map = mocker.patch("api.main.v1_map", return_value={"some": "data"})
+    mock_response = Response("<html><body>Map</body></html>", status=200, content_type="text/html")
+    mock_map = mocker.patch("api.main.v1_map_html", return_value=mock_response)
+
     response = client.get("/api/v1/map")
 
+    # Vérifications
     assert response.status_code == 200
-    mock_map.assert_called_once()  # Vérifie que map() a été appelé
+    assert response.headers["Content-Type"] == "text/html"
+    assert b"<html>" in response.data  # Vérifie que le contenu est bien du HTML
+    mock_map.assert_called_once()  # Vérifie que send_html() a bien été appelé
+
+
+# Test pour l'endpoint /api/v1/price-tables
+def test_api_v1_price_tables(client, mocker):
+    # Patch la fonction price_tables et retourne une valeur compatible JSON
+    mock_price_tables = mocker.patch("api.main.v1_price_tables", return_value={"some": "data"})
+    response = client.get("/api/v1/price-tables")
+
+    assert response.status_code == 200
+    mock_price_tables.assert_called_once()  # Vérifie que map() a été appelé
+
+def test_handle_exception_with_http_error(client):
+    with app.test_request_context():
+        response = handle_exception(Exception("404 Not Found: Resource not found"))
+
+        json = response[0].json
+        assert json == {"error": "Not Found", "code": 404}
+
+        status_code = response[1]
+        assert status_code == 404
+
+def test_handle_exception_with_custom_error(client):
+    with app.test_request_context():
+        response = handle_exception(RuntimeError("A custom error occurred"))
+
+        json = response[0].json
+        assert json == {"error": "A custom error occurred", "code": 500}
+
+        status_code = response[1]
+        assert status_code == 500

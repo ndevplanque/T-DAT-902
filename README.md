@@ -7,7 +7,7 @@ Homepedia project
 
 Create a `.env` file in `/frontend` with:
 
-- `API_V1_URL` : the URL of the backend API
+- `API_URL` : the URL of the backend API
 - `MAPBOX_ACCESS_TOKEN` : the access token for the mapbox API (generate it [here](https://console.mapbox.com/account/access-tokens/))
 
 ### Run the project

@@ -3,86 +3,48 @@ import api.v1.database.queries as q
 import numpy as np
 
 def get_cities_prices():
-    db = Postgres()
-
-    items = []
-    min_price = None
-    max_price = None
-
-    for city_id, name in db.execute(q.list_cities_prices()):
-        zone_price = generate_random_price() # En attendant d'avoir des données réelles
-        # Mettre à jour min_price et max_price
-        if min_price is None or zone_price < min_price:
-            min_price = zone_price
-        if max_price is None or zone_price > max_price:
-            max_price = zone_price
-        items.append({
-            'name': name,
-            'price': zone_price
-        })
-
-    aggs = {
-        "min_price": min_price,
-        "max_price": max_price,
-    }
-
-    db.close()
-    return response_builder("Villes", items, aggs)
+    data, aggs = parse_query_result(q.list_cities_prices())
+    return response_builder("Villes", data, aggs)
 
 def get_departments_prices():
-    db = Postgres()
-
-    items = []
-    min_price = None
-    max_price = None
-
-    for department_id, name in db.execute(q.list_departments_prices()):
-        zone_price = generate_random_price() # En attendant d'avoir des données réelles
-        # Mettre à jour min_price et max_price
-        if min_price is None or zone_price < min_price:
-            min_price = zone_price
-        if max_price is None or zone_price > max_price:
-            max_price = zone_price
-        items.append({
-            'name': name,
-            'price': zone_price
-        })
-
-    aggs = {
-        "min_price": min_price,
-        "max_price": max_price,
-    }
-
-    db.close()
-    return response_builder("Départements", items, aggs)
+    data, aggs = parse_query_result(q.list_departments_prices())
+    return response_builder("Départements", data, aggs)
 
 def get_regions_prices():
-    db = Postgres()
+    data, aggs = parse_query_result(q.list_regions_prices())
+    return response_builder("Régions", data, aggs)
 
-    items = []
+def parse_query_result(query):
+    data = []
     min_price = None
     max_price = None
 
-    for region_id, name in db.execute(q.list_regions_prices()):
-        zone_price = generate_random_price() # En attendant d'avoir des données réelles
-        # Mettre à jour min_price et max_price
+    db = Postgres()
+    for id, name in db.fetchall(query):
+        zone_price = generate_random_price()
         if min_price is None or zone_price < min_price:
             min_price = zone_price
         if max_price is None or zone_price > max_price:
             max_price = zone_price
-        # Ajouter le nom et les coordonnées de la zone à la liste
-        items.append({
-            'name': name,
-            'price': zone_price
+        data.append({
+            "id": id,
+            "name": name,
+            "price": zone_price,
         })
+
+    db.close()
+
+    if min_price is None:
+        min_price = 0
+    if max_price is None:
+        max_price = 0
 
     aggs = {
         "min_price": min_price,
-        "max_price": max_price,
+        "max_price": max_price
     }
 
-    db.close()
-    return response_builder("Régions", items, aggs)
+    return [data, aggs]
 
 # Générer un prix aléatoire entre 1500 et 6000 €/m² pour chaque zone avec numpy
 def generate_random_price():

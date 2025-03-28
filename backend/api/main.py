@@ -1,14 +1,16 @@
-from dotenv import load_dotenv
 from flask import Flask, jsonify
+from flask_cors import CORS
+import logging
+from api.v1.models.bounds import Bounds
 from api.v1.services.health import health as v1_health
 from api.v1.services.example import example as v1_example
-from api.v1.services.map import map as v1_map_html
+from api.v1.services.map_areas import map_areas as v1_map_areas
 from api.v1.services.price_tables import price_tables as v1_price_tables
 from api.v1.services.word_cloud import word_cloud as v1_word_cloud
 from api.v1.services.sentiments import sentiments as v1_sentiments
 
-load_dotenv()
 app = Flask(__name__)
+CORS(app) # Cela permettra à toutes les origines d'accéder à votre serveur
 
 @app.route('/', methods=['GET'])
 def root():
@@ -22,9 +24,11 @@ def api_v1_health():
 def api_v1_example():
     return v1_example()
 
-@app.route('/api/v1/map', methods=['GET'])
-def api_v1_map():
-    return v1_map_html()
+@app.route('/api/v1/map-areas/<zoom>/<sw_lat>/<sw_lon>/<ne_lat>/<ne_lon>', methods=['GET'])
+def api_v1_map_areas_bounded(zoom, sw_lat, sw_lon, ne_lat, ne_lon):
+    bounds = Bounds(int(zoom), float(sw_lat), float(sw_lon), float(ne_lat), float(ne_lon))
+    logging.info(f"Bounds: {bounds}")
+    return v1_map_areas(bounds)
 
 @app.route('/api/v1/price-tables', methods=['GET'])
 def api_v1_price_table():

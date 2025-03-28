@@ -1,20 +1,14 @@
 {
-  "date_validation": "2025-03-14T15:59:21.537481",
+  "date_validation": "2025-03-27T08:55:48.517447",
   "statistiques": {
-    "total_villes": 34455,
-    "total_avis": 54656
+    "total_villes": 0,
+    "total_avis": 0
   },
   "completude": {
-    "villes_sans_avis": 28978
+    "villes_sans_avis": 0
   },
   "coherence": {
     "villes_notes_incoherentes": 0
   },
-  "problemes_potentiels": [
-    {
-      "type": "villes_sans_avis",
-      "description": "28978 villes n'ont aucun avis",
-      "severite": "moyenne"
-    }
-  ]
+  "problemes_potentiels": []
 }

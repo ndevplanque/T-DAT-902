@@ -27,7 +27,7 @@ class Postgres:
         if self.conn:
             self.conn.close()
 
-    def execute(self, query, params=None):
+    def fetchall(self, query, params=None):
         """Exécute une requête SQL en toute sécurité"""
         try:
             self.cursor.execute(query, params)

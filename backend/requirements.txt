@@ -3,9 +3,10 @@ pandas
 numpy
 psycopg2-binary
 folium
-python-dotenv
 matplotlib
 shapely
 wordcloud
+geojson
+geopandas
 pytest
 pytest-mock

@@ -45,7 +45,7 @@ sleep 10
 # Si la vérification échoue, le script s'arrêtera ici
 
 # Exécuter le script d'importation
-echo "Démarrage de l'importation des données géographiques..."
-python /app/geojson_processing.py
+#echo "Démarrage de l'importation des données géographiques..."
+#python /app/geojson_processing.py
 
-echo "Importation terminée."
+echo "Importation non effectuée."

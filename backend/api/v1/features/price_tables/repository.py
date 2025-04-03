@@ -1,18 +1,22 @@
-from api.v1.database.postgres import Postgres
-import api.v1.database.queries as q
+from v1.database.postgres import Postgres
+import v1.database.queries as q
 import numpy as np
+
 
 def get_cities_prices():
     data, aggs = parse_query_result(q.list_cities_prices())
     return response_builder("Villes", data, aggs)
 
+
 def get_departments_prices():
     data, aggs = parse_query_result(q.list_departments_prices())
     return response_builder("Départements", data, aggs)
 
+
 def get_regions_prices():
     data, aggs = parse_query_result(q.list_regions_prices())
     return response_builder("Régions", data, aggs)
+
 
 def parse_query_result(query):
     data = []
@@ -46,9 +50,11 @@ def parse_query_result(query):
 
     return [data, aggs]
 
+
 # Générer un prix aléatoire entre 1500 et 6000 €/m² pour chaque zone avec numpy
 def generate_random_price():
     return round(np.random.uniform(1500, 6000), 2)
+
 
 def response_builder(title, items, aggs):
     return {

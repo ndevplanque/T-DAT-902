@@ -1,6 +1,5 @@
-from flask import jsonify
-import json
-import api.v1.repositories.price_tables as repository
+import v1.features.price_tables.repository as repository
+
 
 def price_tables():
     regions = repository.get_regions_prices()

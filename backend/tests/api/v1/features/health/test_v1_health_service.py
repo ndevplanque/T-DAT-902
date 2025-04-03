@@ -1,5 +1,5 @@
-import pytest
-from api.v1.services.health import health
+from v1.features.health.service import health
+
 
 def test_health():
     result = health()

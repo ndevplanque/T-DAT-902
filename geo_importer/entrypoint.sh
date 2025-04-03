@@ -47,3 +47,5 @@ sleep 10
 # Exécuter le script d'importation
 echo "Démarrage de l'importation des données géographiques..."
 python /app/geojson_processing.py
+
+echo "Importation terminée."

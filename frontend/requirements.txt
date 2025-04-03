@@ -2,4 +2,3 @@ requests
 pandas
 python-dotenv
 streamlit
-streamlit_folium

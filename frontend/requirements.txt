@@ -2,7 +2,4 @@ requests
 pandas
 python-dotenv
 streamlit
-folium
 streamlit_folium
-Pillow
-plotly

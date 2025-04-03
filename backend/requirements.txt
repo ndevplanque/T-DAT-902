@@ -1,12 +1,8 @@
 flask
-pandas
+flask-cors
 numpy
 psycopg2-binary
-folium
 matplotlib
-shapely
 wordcloud
-geojson
-geopandas
 pytest
 pytest-mock

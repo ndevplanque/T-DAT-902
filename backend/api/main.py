@@ -1,15 +1,20 @@
+import logs
 from flask import Flask, jsonify
 from flask_cors import CORS
-import logging
 from v1.models.bounds import Bounds
 from v1.features.health.service import health as v1_health
 from v1.features.map_areas.service import map_areas as v1_map_areas
 from v1.features.price_tables.service import price_tables as v1_price_tables
 from v1.features.word_clouds.service import word_clouds as v1_word_clouds
 from v1.features.sentiments.service import sentiments as v1_sentiments
+import v1.features.mongodb.service as v1_mongodb
 
+# Configuration de l'application Flask
+logs.info("Starting Homepedia API")
 app = Flask(__name__)
-CORS(app)  # Cela permettra à toutes les origines d'accéder à votre serveur
+logs.info("Started")
+CORS(app)  # La map est exécutée côté client donc on doit autoriser les requêtes CORS
+logs.info("CORS enabled")
 
 
 @app.route('/', methods=['GET'])
@@ -25,7 +30,7 @@ def api_v1_health():
 @app.route('/api/v1/map-areas/<zoom>/<sw_lat>/<sw_lon>/<ne_lat>/<ne_lon>', methods=['GET'])
 def api_v1_map_areas(zoom, sw_lat, sw_lon, ne_lat, ne_lon):
     bounds = Bounds(int(zoom), float(sw_lat), float(sw_lon), float(ne_lat), float(ne_lon))
-    logging.info(f"Bounds: {bounds}")
+    logs.info(f"Bounds: {bounds}")
     return v1_map_areas(bounds)
 
 
@@ -42,6 +47,11 @@ def api_v1_sentiments(entity, id):
 @app.route('/api/v1/word-clouds/<entity>/<id>', methods=['GET'])
 def api_v1_word_clouds(entity, id):
     return v1_word_clouds(entity, id)
+
+
+@app.route('/api/v1/mongodb/schema', methods=['GET'])
+def api_v1_mongodb_schema():
+    return v1_mongodb.schema()
 
 
 # Handler générique pour les erreurs

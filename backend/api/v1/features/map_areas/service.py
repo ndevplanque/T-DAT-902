@@ -1,6 +1,5 @@
 import v1.features.map_areas.repository as repository
-import logging
-import time
+import time, logs
 
 from v1.models.bounds import Bounds
 
@@ -21,7 +20,7 @@ def map_areas(bounds):
 
     execution_time_sec = f"{end - start:.2f}"
 
-    logging.info(f"Map areas retrieved in {execution_time_sec} seconds.")
+    logs.info(f"Map areas retrieved in {execution_time_sec} seconds.")
 
     return fc
 

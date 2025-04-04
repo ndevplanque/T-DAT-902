@@ -154,7 +154,7 @@ Pour vérifier que les données ont bien été chargées:
 
 - **Vérification des données PostgreSQL**:
   ```bash
-  docker exec -it postgres psql -U postgres -d gis_db -c "SELECT COUNT(*) FROM communes; SELECT COUNT(*) FROM departements; SELECT COUNT(*) FROM regions;"
+  docker exec -it postgres psql -U postgres -d gis_db -c "SELECT COUNT(*) FROM cities; SELECT COUNT(*) FROM departments; SELECT COUNT(*) FROM regions;"
   ```
 
 ## Flux de Travail

@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg2, logs
 
 class Postgres:
     def __init__(self):
@@ -33,5 +33,5 @@ class Postgres:
             self.cursor.execute(query, params)
             return self.cursor.fetchall()
         except psycopg2.Error as e:
-            print(f"Erreur SQL : {e}")  # Log l'erreur au lieu de planter
+            logs.info(f"Erreur SQL : {e}")  # Log l'erreur au lieu de planter
             return []

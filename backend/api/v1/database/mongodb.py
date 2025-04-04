@@ -1,6 +1,9 @@
+from typing import Any, Mapping
+
 import logs
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
+from pymongo.synchronous.cursor import Cursor
 
 
 class MongoDB:
@@ -21,30 +24,24 @@ class MongoDB:
         if self.client:
             self.client.close()
 
-    def find(self, collection_name, query=None, fields=None):
+    def find(self, collection_name: str, only_fields: list = None, query: dict = None):
         """Exécute une requête pour récupérer tous les documents correspondant à la requête"""
+        if only_fields is None:
+            fields = {}
+        else:
+            fields = {field: 1 for field in only_fields}
+            if "_id" not in fields:
+                fields["_id"] = 0
         if query is None:
             query = {}
-        if fields is None:
-            fields = {}
         try:
             collection = self.db[collection_name]
-            return list(collection.find(query, fields))
+            return collection.find(query, fields)
         except PyMongoError as e:
             logs.info(f"Erreur MongoDB : {e}")
             return []
 
-    def insert_one(self, collection_name, document):
-        """Insère un document dans la collection spécifiée"""
-        try:
-            collection = self.db[collection_name]
-            result = collection.insert_one(document)
-            return result.inserted_id
-        except PyMongoError as e:
-            logs.info(f"Erreur MongoDB : {e}")
-            return None
-
-    def fields(self, collection_name):
+    def fields(self, collection_name: str):
         """Retourne les champs de la collection"""
         try:
             collection = self.db[collection_name]
@@ -67,7 +64,7 @@ class MongoDB:
             collections = {}
             for name in self.collections():
                 sample_item = self.db[name].find_one()
-                collections[name] = {"example": MongoDB.to_json(sample_item), "keys": {}}
+                collections[name] = {"example": MongoDB.json(sample_item), "keys": {}}
                 for key in self.fields(name):
                     collections[name]["keys"][key] = sample_item.get(key).__class__.__name__
             return {
@@ -83,14 +80,24 @@ class MongoDB:
             return None
 
     @staticmethod
-    def to_json(document):
+    def json(data):
         """Convertit les données en JSON"""
+
+        # Mapping correspond à un document seul
+        # Cursor correspond à une liste de documents
+        if not data or not isinstance(data, (Mapping, Cursor)):
+            return {}
+
         json = {}
 
-        for key in document:
-            if document[key].__class__.__name__ == "ObjectId":
-                json[key] = str(document[key])
-            else:
-                json[key] = document[key]
+        if isinstance(data, Mapping):
+            data = [data]
+
+        for document in data:
+            for key in document:
+                if document[key].__class__.__name__ == "ObjectId":
+                    json[key] = str(document[key])
+                else:
+                    json[key] = document[key]
 
         return json

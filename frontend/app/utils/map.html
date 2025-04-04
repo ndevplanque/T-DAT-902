@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Leaflet avec GeoJSON dynamique</title>
+
+    <!-- Inclure la bibliothèque Leaflet -->
+    <link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+          rel="stylesheet"/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-ajax@2.1.1/leaflet.ajax.min.js"></script>
+
+    <!-- Ainsi que le plugin fullscreen -->
+    <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+    <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
+          rel='stylesheet'/>
+
+    <style>
+        #info-pane {
+            z-index: 1000;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: white;
+            padding: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+            font-family: Arial, sans-serif;
+            display: none;
+        }
+        #close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: #FF4400;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map" style="width: 100%; height: 800px;">
+    <div id="info-pane">
+        <button id="close-btn" style="float: right; background-color: #FF4400; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer;">X</button>
+        <h3 id="feature-name"></h3>
+        <p id="feature-price"></p>
+        <p id="feature-type"></p>
+        <img id="feature-word-cloud-img" src="" alt="Word Cloud" style="width: 100%; height: auto;" />
+        <img id="feature-sentiments-img" src="" alt="Sentiments" style="width: 100%; height: auto;" />
+    </div>
+</div>
+
+<script>
+    const API_URL = "http://localhost:5001"
+    const INITIAL_ZOOM = 10
+    const INITIAL_LOCATION = [48.584614, 7.750713] // Strasbourg
+    const COLORS = [
+        "#006600", "#228822", "#33CC33",
+        "#77FF00", "#AAFF22", "#FFFF00",
+        "#FFDD00", "#FFAA00", "#FF8800",
+        "#FF6600", "#FF4400", "#FF0000",
+    ];
+
+    // Instancie la carte Leaflet
+    const map = L.map('map', {
+        center: INITIAL_LOCATION,
+        zoom: INITIAL_ZOOM,
+        zoomControl: false // On va le créer nous-même pour le placer ailleurs
+    });
+
+    // Prépare les couches pour les données
+    const priceLayer = L.geoJSON().addTo(map);
+    const satisfactionLayer = L.geoJSON();
+    const allLayers = [priceLayer, satisfactionLayer];
+
+    // Ajoute les boutons en haut à droite
+    L.control.layers({
+        "Prix": priceLayer,
+        "Satisfaction": satisfactionLayer
+    }).addTo(map);
+    L.control.zoom({position: 'topright'}).addTo(map);
+    L.control.fullscreen({position: 'topright'}).addTo(map);
+
+    // Ajoute une couche de tuiles (OpenStreetMap ici)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Récupère les données GeoJSON via un appel API
+    function loadGeoJSONData() {
+        fetch(urlGetMapAreas(map.getZoom(), map.getBounds()))
+            .then(response => response.json())
+            .then(data => {
+                // Remplacer le contenu des layers sans recréer l'objet
+                priceLayer.clearLayers().addLayer(buildLayer("price", data));
+                satisfactionLayer.clearLayers().addLayer(buildLayer("satisfaction", data));
+
+                map.addLayer(findActiveLayer());
+            })
+            .catch(error => console.error('Erreur de récupération des données GeoJSON :', error));
+    }
+
+    // Charger les données initiales lors du chargement de la carte
+    loadGeoJSONData();
+
+    // Recharger les données à chaque fois que la carte est déplacée (mouvement ou zoom)
+    map.on('moveend', function () {
+        loadGeoJSONData();
+    });
+
+    /** Fonctions utilitaires **/
+
+    function buildLayer(type, data) {
+        const min = data.metadata.min_price;
+        const max = data.metadata.max_price;
+
+        return L.geoJSON(data, {
+            style: function (feature) {
+                const actual = feature.properties.price;
+                return {
+                    fillColor: type === "price" ? getPriceColor(actual, min, max) : "black",
+                    color: "black",
+                    weight: 1,
+                    dashArray: "1, 4",
+                    fillOpacity: 0.3
+                };
+            },
+            onEachFeature: function (feature, layer) {
+                const tooltip = {
+                    html: `<strong>${feature.properties.name}</strong><br>Prix: ${feature.properties.price} €`,
+                    options: {
+                        permanent: false,
+                        direction: 'top',
+                        opacity: 0.9
+                    },
+                    highlighted: {
+                        fillColor: "#FFDD00",
+                        weight: 3,
+                        color: "#FF4400",
+                        fillOpacity: 0.5
+                    },
+                };
+
+                layer.bindTooltip(tooltip.html, tooltip.options);
+
+                // Stocker le style initial du layer
+                const defaultStyle = layer.options.style ? layer.options.style(feature) : {};
+
+                layer.on('mouseover', function () {
+                    layer.openTooltip();
+                    layer.setStyle(tooltip.highlighted);
+                });
+
+                layer.on('mouseout', function () {
+                    layer.closeTooltip();
+                    layer.setStyle(defaultStyle); // Restaurer le style initial
+                });
+
+                layer.on('click', function (e) {
+                    document.getElementById('feature-word-cloud-img').src = '',
+                        document.getElementById('feature-sentiments-img').src = '',
+
+                        document.getElementById('feature-name').innerHTML = `${feature.properties.name}`;
+                    document.getElementById('feature-type').innerHTML = `Type : ${data.metadata.name.replace(/s$/, '')}`;
+                    document.getElementById('feature-price').innerHTML = `Prix moyen : ${feature.properties.price} €`;
+                    document.getElementById('feature-word-cloud-img').src = `${API_URL}/${feature.properties.word_cloud_url}`;
+                    document.getElementById('feature-sentiments-img').src = `${API_URL}/${feature.properties.sentiments_url}`;
+                    document.getElementById('info-pane').style.display = 'block';
+                });
+            }
+        })
+    }
+
+    // Événement pour fermer le panneau lorsqu'on clique sur le bouton
+    document.getElementById('close-btn').addEventListener('click', function () {
+        document.getElementById('info-pane').style.display = 'none';
+    });
+
+    function getPriceColor(price, minPrice, maxPrice) {
+        // Calculer un indice basé sur le prix
+        const ratio = (price - minPrice) / (maxPrice - minPrice);
+        const colorIndex = Math.min(Math.floor(ratio * COLORS.length), COLORS.length - 1);
+        return COLORS[colorIndex];
+    }
+
+    function urlGetMapAreas(zoom, bounds) {
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        return `${API_URL}/api/v1/map-areas/${zoom}/${sw.lat}/${sw.lng}/${ne.lat}/${ne.lng}`;
+    }
+
+    function findActiveLayer() {
+        for (let layer of allLayers) {
+            if (isLayerActive(layer)) {
+                return layer;
+            }
+        }
+    }
+
+    function isLayerActive(layer) {
+        return map.hasLayer(layer);
+    }
+</script>
+</body>
+</html>

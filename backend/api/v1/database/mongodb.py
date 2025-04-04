@@ -66,8 +66,8 @@ class MongoDB:
         try:
             collections = {}
             for name in self.collections():
-                collections[name] = {"keys": {}}
                 sample_item = self.db[name].find_one()
+                collections[name] = {"example": MongoDB.to_json(sample_item), "keys": {}}
                 for key in self.fields(name):
                     collections[name]["keys"][key] = sample_item.get(key).__class__.__name__
             return {
@@ -81,3 +81,16 @@ class MongoDB:
         except PyMongoError as e:
             logs.info(f"Erreur MongoDB : {e}")
             return None
+
+    @staticmethod
+    def to_json(document):
+        """Convertit les données en JSON"""
+        json = {}
+
+        for key in document:
+            if document[key].__class__.__name__ == "ObjectId":
+                json[key] = str(document[key])
+            else:
+                json[key] = document[key]
+
+        return json

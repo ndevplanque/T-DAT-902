@@ -1,10 +1,10 @@
 {
     "total_villes": 34455,
-    "villes_traitees": 34455,
-    "pourcentage_traite": 100.0,
-    "total_mots_extraits": 368672,
-    "moyenne_mots_par_ville": 35.61,
-    "sentiment_positif_moyen": 36.15,
-    "sentiment_neutre_moyen": 51.87,
-    "sentiment_negatif_moyen": 11.99
+    "villes_traitees": 116,
+    "pourcentage_traite": 0.34,
+    "total_mots_extraits": 14966,
+    "moyenne_mots_par_ville": 129.02,
+    "sentiment_positif_moyen": 53.16,
+    "sentiment_neutre_moyen": 37.84,
+    "sentiment_negatif_moyen": 9.0
 }

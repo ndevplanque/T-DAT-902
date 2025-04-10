@@ -2,13 +2,11 @@
 set -e
 
 # Variables d'environnement
-SPARK_MASTER=${SPARK_MASTER:-"spark://spark-master:7077"}
 MONGO_URI=${MONGO_URI:-"mongodb://root:rootpassword@mongodb:27017/"}
 MONGO_DB=${MONGO_DB:-"villes_france"}
 WAIT_FOR_SCRAPER=${WAIT_FOR_SCRAPER:-"true"}
 
 echo "Starting Avis Processor Submitter..."
-echo "Using Spark Master: $SPARK_MASTER"
 
 # ----- Fonction wait-for intégrée -----
 
@@ -69,21 +67,8 @@ if [ "$WAIT_FOR_SCRAPER" = "true" ]; then
     done
 fi
 
-# Attendre que le Master Spark soit prêt
-echo "Waiting for Spark Master to be ready..."
-wait_for_connection spark-master 7077 120
-
-echo "Submitting Spark job to process avis..."
-
-# Soumettre le job Spark
-spark-submit \
-  --master $SPARK_MASTER \
-  --deploy-mode client \
-  --conf "spark.mongodb.input.uri=$MONGO_URI$MONGO_DB" \
-  --conf "spark.mongodb.output.uri=$MONGO_URI$MONGO_DB" \
-  --conf "spark.driver.extraJavaOptions=-Dlog4j.configuration=file:///opt/bitnami/spark/conf/log4j.properties" \
-  --conf "spark.executor.extraJavaOptions=-Dlog4j.configuration=file:///opt/bitnami/spark/conf/log4j.properties" \
-  --jars /opt/bitnami/spark/jars/mongo-spark-connector.jar,/opt/bitnami/spark/jars/mongodb-driver-sync.jar,/opt/bitnami/spark/jars/mongodb-driver-core.jar,/opt/bitnami/spark/jars/bson.jar \
-  /app/word_processor.py $MONGO_URI $MONGO_DB
+# Executer le traitement des avis
+chmod +x /app/word_processor.py
+/app/word_processor.py $MONGO_URI $MONGO_DB
 
 echo "Job submitted successfully!"

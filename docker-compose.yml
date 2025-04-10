@@ -307,7 +307,7 @@ services:
       - mongodb
       - avis-scraper
 
-  # Service pour soumettre le job de traitement aux workers Spark existants
+  # Service pour executer le traitement des avis des villes pour le nuage de mots et les sentiments simples
   avis-processor-submitter:
     build:
       context: ./avis-processor
@@ -317,13 +317,9 @@ services:
     environment:
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
       - MONGO_DB=villes_france
-      - SPARK_MASTER=spark://spark-master:7077
       - WAIT_FOR_SCRAPER=${ENABLE_SCRAPER:-true}  # Ne pas attendre le scraper s'il est désactivé
     depends_on:
       - mongodb
-      - spark-master
-      - spark-worker
-      - spark-worker-2
       - avis-scraper
     volumes:
       - ./avis-processor:/app

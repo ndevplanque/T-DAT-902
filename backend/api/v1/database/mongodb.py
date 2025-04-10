@@ -1,9 +1,8 @@
-from typing import Any, Mapping
-
 import logs
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 from pymongo.synchronous.cursor import Cursor
+from typing import Mapping
 
 
 class MongoDB:
@@ -24,28 +23,26 @@ class MongoDB:
         if self.client:
             self.client.close()
 
-    def find(self, collection_name: str, only_fields: list = None, query: dict = None):
+    def find(self, collection: str, query=None, fields=None):
         """Exécute une requête pour récupérer tous les documents correspondant à la requête"""
-        if only_fields is None:
-            fields = {}
-        else:
-            fields = {field: 1 for field in only_fields}
-            if "_id" not in fields:
-                fields["_id"] = 0
-        if query is None:
-            query = {}
         try:
-            collection = self.db[collection_name]
-            return collection.find(query, fields)
+            return self.db[collection].find(query, fields)
         except PyMongoError as e:
             logs.info(f"Erreur MongoDB : {e}")
             return []
 
-    def fields(self, collection_name: str):
+    def find_one(self, collection: str, query=None, fields=None):
+        """Exécute une requête pour récupérer un document correspondant à la requête"""
+        try:
+            return self.db[collection].find_one(query, fields)
+        except PyMongoError as e:
+            logs.info(f"Erreur MongoDB : {e}")
+            return None
+
+    def fields(self, collection: str):
         """Retourne les champs de la collection"""
         try:
-            collection = self.db[collection_name]
-            return list(collection.find_one().keys())
+            return list(self.db[collection].find_one().keys())
         except PyMongoError as e:
             logs.info(f"Erreur MongoDB : {e}")
             return None
@@ -63,9 +60,9 @@ class MongoDB:
         try:
             collections = {}
             for name in self.collections():
-                sample_item = self.db[name].find_one()
+                sample_item = self.find_one(collection=name)
                 collections[name] = {"example": MongoDB.json(sample_item), "keys": {}}
-                for key in self.fields(name):
+                for key in sample_item.keys():
                     collections[name]["keys"][key] = sample_item.get(key).__class__.__name__
             return {
                 "db_name": self.db.name,
@@ -101,3 +98,14 @@ class MongoDB:
                     json[key] = document[key]
 
         return json
+
+    @staticmethod
+    def only_fields(fields):
+        """Un filtre pour spécifier les champs à retourner"""
+        if not isinstance(fields, list):
+            return {}
+        else:
+            f = {field: 1 for field in fields}
+            if "_id" not in f:
+                f["_id"] = 0
+        return f

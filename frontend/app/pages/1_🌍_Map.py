@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -7,9 +6,8 @@ st.set_page_config(layout="wide")
 
 st.title("Carte des Prix Immobiliers 🌍")
 
-# Lire le fichier HTML avec la carte Leaflet
+# Lire et afficher la carte HTML
 with open('app/utils/map.html', 'r') as file:
     html_content = file.read()
 
-# Afficher le fichier HTML dans Streamlit
 components.html(html_content, height=600)

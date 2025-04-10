@@ -10,10 +10,10 @@ def sentiments(entity, id):
         raise AttributeError("Les nuages de mots ne sont disponibles que pour les 'cities', 'departments' ou 'regions'")
 
     # Récupérer les données
-    data = repository.get_sentiments(entity, id)
+    sentiments = repository.get_sentiments(entity, id)
 
     # Traduire les données en labels, valeurs et couleurs
-    labels, values, colors = get_values_labels_colors(data)
+    labels, values, colors = get_values_labels_colors(sentiments)
 
     # Création du donut chart
     chart, ax = build_chart(labels, values, colors)

@@ -7,6 +7,7 @@ from v1.features.map_areas.service import map_areas as v1_map_areas
 from v1.features.price_tables.service import price_tables as v1_price_tables
 from v1.features.word_clouds.service import word_clouds as v1_word_clouds
 from v1.features.sentiments.service import sentiments as v1_sentiments
+from v1.features.area_details.service import area_details as v1_area_details
 import v1.features.mongodb.service as v1_mongodb
 
 # Configuration de l'application Flask
@@ -47,6 +48,11 @@ def api_v1_sentiments(entity, id):
 @app.route('/api/v1/word-clouds/<entity>/<id>', methods=['GET'])
 def api_v1_word_clouds(entity, id):
     return v1_word_clouds(entity, id)
+
+
+@app.route('/api/v1/area-details/<entity>/<id>', methods=['GET'])
+def api_v1_area_details(entity, id):
+    return v1_area_details(entity, id)
 
 
 @app.route('/api/v1/mongodb/schema', methods=['GET'])

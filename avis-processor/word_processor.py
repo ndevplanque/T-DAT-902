@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
 import os
 import sys
-import time
 import logging
 import spacy
 import pymongo
-import pandas as pd
 from datetime import datetime
 from collections import Counter
-
-# PySpark imports
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, udf, explode, lit, array_union, when, array
-from pyspark.sql.types import StringType, ArrayType, StructType, StructField, IntegerType, FloatType
 
 # Configuration du logging
 logging.basicConfig(
@@ -70,17 +63,6 @@ NORMALIZE_FORMS = {
     "transports": "transport"
 }
 
-# Initialiser SparkSession avec configuration MongoDB
-def init_spark():
-    spark = SparkSession.builder \
-        .appName("AvisProcessor") \
-        .config("spark.mongodb.input.uri", mongo_uri + mongo_db) \
-        .config("spark.mongodb.output.uri", mongo_uri + mongo_db) \
-        .getOrCreate()
-
-    logger.info(f"Initialized Spark Session: {spark.version}")
-    return spark
-
 # Charger le modèle SpaCy
 def load_spacy_model():
     try:
@@ -91,7 +73,7 @@ def load_spacy_model():
         logger.error("Unable to load SpaCy model. Make sure it's installed.")
         sys.exit(1)
 
-# Fonction pour normaliser le texte (version broadcastable)
+# Fonction pour normaliser le texte
 def normalize_text(text):
     if not text or not isinstance(text, str):
         return ""
@@ -121,7 +103,6 @@ def is_derived_from_stopword(word):
                 return True
     return False
 
-# UDF pour extraire les mots significatifs - version améliorée avec filtrage renforcé
 def extract_significant_words(text, nlp, min_word_length=3):
     if not text or not isinstance(text, str) or len(text) < min_word_length:
         return []
@@ -170,8 +151,8 @@ def analyze_sentiment(note_globale):
         return "neutre"
 
 # Fonction principale pour traiter les avis avec PySpark
-def process_avis(spark, mongo_uri, mongo_db):
-    logger.info("Starting processing of avis with PySpark")
+def process_avis(mongo_uri, mongo_db):
+    logger.info("Starting processing of feedbacks")
 
     # Charger le modèle SpaCy
     nlp = load_spacy_model()
@@ -308,16 +289,9 @@ if __name__ == "__main__":
 
     logger.info(f"Using MongoDB: {mongo_uri}{mongo_db}")
 
-    # Initialiser Spark
-    spark = init_spark()
-
     try:
         # Traiter les avis
-        process_avis(spark, mongo_uri, mongo_db)
+        process_avis(mongo_uri, mongo_db)
 
     except Exception as e:
         logger.error(f"Error in main processing: {e}")
-
-    finally:
-        if spark:
-            spark.stop()

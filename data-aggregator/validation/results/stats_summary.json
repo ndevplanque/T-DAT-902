@@ -1,0 +1,108 @@
+{
+  "general": {
+    "date_rapport": "2025-04-11T13:53:36.026883",
+    "nombre_villes": 34455,
+    "nombre_avis": 54656,
+    "nombre_departements": 94,
+    "nombre_regions": 12
+  },
+  "top_departements": [
+    {
+      "id": "53",
+      "nom": "Mayenne",
+      "nombre_villes": 30,
+      "nombre_avis": 154,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "05",
+      "nom": "Hautes-Alpes",
+      "nombre_villes": 17,
+      "nombre_avis": 102,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "85",
+      "nom": "Vendée",
+      "nombre_villes": 91,
+      "nombre_avis": 565,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "49",
+      "nom": "Maine-et-Loire",
+      "nombre_villes": 61,
+      "nombre_avis": 503,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "64",
+      "nom": "Pyrénées-Atlantiques",
+      "nombre_villes": 57,
+      "nombre_avis": 405,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "35",
+      "nom": "Ille-et-Vilaine",
+      "nombre_villes": 105,
+      "nombre_avis": 822,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "15",
+      "nom": "Cantal",
+      "nombre_villes": 15,
+      "nombre_avis": 110,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "27",
+      "nom": "Eure",
+      "nombre_villes": 60,
+      "nombre_avis": 365,
+      "note_moyenne": 3.6
+    },
+    {
+      "id": "44",
+      "nom": "Loire-Atlantique",
+      "nombre_villes": 131,
+      "nombre_avis": 1442,
+      "note_moyenne": 3.6
+    },
+    {
+      "id": "19",
+      "nom": "Corrèze",
+      "nombre_villes": 22,
+      "nombre_avis": 138,
+      "note_moyenne": 3.6
+    }
+  ],
+  "top_mots": [
+    {
+      "mot": "ville",
+      "frequence": 60305
+    },
+    {
+      "mot": "commerce",
+      "frequence": 12953
+    },
+    {
+      "mot": "bon",
+      "frequence": 10376
+    },
+    {
+      "mot": "petit",
+      "frequence": 9639
+    },
+    {
+      "mot": "agréable",
+      "frequence": 9436
+    }
+  ],
+  "sentiments_global": {
+    "positif": 34.7,
+    "neutre": 50.3,
+    "negatif": 15.0
+  }
+}

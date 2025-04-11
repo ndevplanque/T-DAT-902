@@ -1,236 +1,178 @@
-# Documentation : module de traitement des avis (Processor)
+# Documentation: Module Avis Processor
 
 ## Vue d'ensemble
 
-Le module de traitement des avis (avis-processor) analyse les avis collectés pour en extraire les mots significatifs et analyser les sentiments. Il utilise des techniques de traitement du langage naturel (NLP) avec SpaCy et s'exécute dans un environnement Apache Spark pour le traitement distribué.
+Le module "Avis Processor" est un composant essentiel du projet de traitement des avis sur les villes françaises. Ce module est responsable de l'analyse textuelle des avis, de l'extraction des mots significatifs et de l'analyse de sentiment. Il transforme les données brutes des avis stockées dans MongoDB en informations exploitables pour la visualisation et l'analyse.
 
-## Fonctionnement
+## Architecture
 
-### Extraction des mots significatifs
+Le module "Avis Processor" est composé de deux services principaux:
 
-Le processus d'extraction des mots significatifs comprend plusieurs étapes :
+1. **avis-processor-submitter**: Service principal qui effectue le traitement des avis
+2. **avis-processor-validator**: Service de validation qui vérifie les résultats du traitement
 
-1. **Normalisation du texte** :
-    - Mise en minuscule
-    - Suppression des caractères spéciaux et chiffres
-    - Suppression des espaces multiples
+### Structure des fichiers
 
-   ```python
-   def normalize_text(text):
-       if not text or not isinstance(text, str):
-           return ""
-       
-       text = text.lower()
-       cleaned_text = ""
-       for c in text:
-           if c.isalpha() or c.isspace():
-               cleaned_text += c
-           else:
-               cleaned_text += " "
-       
-       while "  " in cleaned_text:
-           cleaned_text = cleaned_text.replace("  ", " ")
-       
-       return cleaned_text.strip()
-   ```
+```
+avis-processor/
+├── Dockerfile              # Configuration de l'environnement Docker
+├── requirements.txt        # Dépendances Python
+├── submit.sh               # Script de démarrage et d'orchestration
+├── word_processor.py       # Script principal de traitement NLP
+└── validation/
+    ├── Dockerfile          # Environnement Docker pour la validation
+    └── verify_processing.py # Script de vérification des résultats
+```
 
-2. **Analyse linguistique avec SpaCy** :
-    - Tokenisation du texte
-    - Analyse grammaticale (part-of-speech tagging)
-    - Lemmatisation (réduction des mots à leur forme canonique)
+## Fonctionnement technique
 
-3. **Filtrage des mots** :
-    - Élimination des stopwords (mots fréquents non informatifs)
-    - Filtrage par classe grammaticale (noms, adjectifs, entités nommées)
-    - Exclusion des mots trop courts
-    - Exclusion des mots personnalisés (liste de stopwords additionnels)
+### Processus de traitement des avis (`word_processor.py`)
 
-   ```python
-   # Extrait du code de filtrage
-   if token.is_stop or lemma in STOPWORDS_ADDITIONNELS:
-       continue
-       
-   if is_derived_from_stopword(lemma):
-       continue
-       
-   if token.pos_ in ["NOUN", "ADJ", "PROPN"]:
-       if len(token.text) >= min_word_length:
-           # Mot conservé
-   ```
+#### 1. Extraction des mots significatifs
+- Utilise **SpaCy** avec le modèle français `fr_core_news_sm` pour l'analyse linguistique
+- Implémente des filtres avancés pour éliminer les mots peu informatifs:
+   - Liste personnalisée de stopwords supplémentaires
+   - Filtrage par classe grammaticale (priorité aux noms, adjectifs et noms propres)
+   - Normalisation des formes plurielles/singulières et dérivées
 
-4. **Normalisation des formes** :
-    - Correction des problèmes de lemmatisation
-    - Normalisation des formes plurielles/singulières
-    - Regroupement des dérivés (ex: "communal", "communale", "commune" → "commune")
+#### 2. Analyse de sentiment
+- Classification des avis basée sur les notes:
+   - Positif: note ≥ 4.0
+   - Neutre: note entre 2.1 et 3.9
+   - Négatif: note ≤ 2.0
 
-   ```python
-   # Corrections pour les problèmes de lemmatisation
-   LEMMA_CORRECTIONS = {
-       "manqu": "manque",
-       "lycér": "lycée",
-       "médiathèqu": "médiathèque",
+#### 3. Traitement des données
+- Analyse ville par ville avec MongoDB
+- Extraction des mots les plus significatifs (top 150)
+- Calcul des pourcentages de sentiment pour chaque ville
+
+### Processus de validation (`verify_processing.py`)
+
+- Génère des statistiques globales sur le traitement
+- Identifie les villes avec les sentiments les plus positifs/négatifs
+- Analyse les mots les plus fréquents à l'échelle nationale
+- Vérifie la cohérence entre les mots extraits et les sentiments
+- Crée des visualisations et rapports de synthèse
+
+## Configuration et utilisation
+
+### Variables d'environnement
+
+| Variable | Description | Valeur par défaut |
+|----------|-------------|-------------------|
+| `MONGO_URI` | URI de connexion à MongoDB | `mongodb://root:rootpassword@mongodb:27017/` |
+| `MONGO_DB` | Nom de la base de données | `villes_france` |
+| `WAIT_FOR_SCRAPER` | Attend que le scraper ait ajouté des données | `true` |
+| `OUTPUT_DIR` | Répertoire de sortie pour les résultats de validation | `/app/results` |
+
+### Intégration avec Docker Compose
+
+Le service s'intègre au projet global via docker-compose.yml:
+
+```yaml
+# Service pour exécuter le traitement des avis
+avis-processor-submitter:
+  build:
+    context: ./avis-processor
+    dockerfile: Dockerfile
+  container_name: avis-processor-submitter
+  restart: on-failure
+  environment:
+    - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
+    - MONGO_DB=villes_france
+    - WAIT_FOR_SCRAPER=${ENABLE_SCRAPER:-true}
+  depends_on:
+    - mongodb
+    - avis-scraper
+  volumes:
+    - ./avis-processor:/app
+    - ./logs:/app/logs
+  networks:
+    - t-dat-902-network
+
+# Service de validation des données traitées
+avis-processor-validator:
+  build:
+    context: ./avis-processor/validation
+    dockerfile: Dockerfile
+  container_name: avis-processor-validator
+  volumes:
+    - ./avis-processor/validation:/app
+    - ./logs:/app/logs
+    - ./avis-processor/validation/results:/app/results
+  environment:
+    - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
+    - MONGO_DB=villes_france
+    - OUTPUT_DIR=/app/results
+  networks:
+    - t-dat-902-network
+  depends_on:
+    - mongodb
+    - avis-processor-submitter
+```
+
+## Workflow d'exécution
+
+1. Le service `avis-processor-submitter` démarre après les services MongoDB et avis-scraper
+2. Le script `submit.sh` vérifie la disponibilité de MongoDB
+3. Si `WAIT_FOR_SCRAPER=true`, il attend que des données soient présentes dans la collection `villes`
+4. Le script `word_processor.py` est exécuté pour traiter les avis
+5. Pour chaque ville non traitée:
+   - Extraction des mots significatifs des avis
+   - Analyse des sentiments
+   - Stockage des résultats dans la collection `mots_villes`
+   - Mise à jour du statut de traitement
+6. Le service `avis-processor-validator` vérifie ensuite les résultats et génère des rapports
+
+## Résultats du traitement
+
+Les résultats sont stockés dans deux endroits:
+
+1. **MongoDB** (collection `mots_villes`) avec la structure:
+   ```json
+   {
+     "city_id": "ID_VILLE",
+     "ville_nom": "NOM_VILLE",
+     "mots": [
+       {"mot": "commerce", "poids": 15},
+       {"mot": "transport", "poids": 10},
        ...
+     ],
+     "sentiments": {
+       "positif": 25,
+       "neutre": 15,
+       "negatif": 10,
+       "positif_percent": 50.0,
+       "neutre_percent": 30.0,
+       "negatif_percent": 20.0
+     },
+     "date_extraction": "2025-04-10T12:34:56"
    }
-   
-   # Normalisation des formes plurielles/singulières
-   NORMALIZE_FORMS = {
-       "commun": "commune",
-       "communes": "commune",
-       "communal": "commune",
-       "commerces": "commerce",
-       ...
-   }
    ```
 
-### Analyse des sentiments
+2. **Rapports de validation** (générés dans `/app/results`):
+   - `stats_summary.json`: Statistiques globales du traitement
+   - `top_villes_positives.csv`: Top 5 des villes les plus positives
+   - `top_villes_negatives.csv`: Top 5 des villes les plus négatives
+   - `top_50_mots_frequents.csv`: 50 mots les plus fréquents
+   - `distribution_sentiment_positif.png`: Graphique de distribution
+   - `top30_mots_frequents.png`: Graphique des 30 mots les plus fréquents
+   - `rapport_synthese.txt`: Synthèse complète du traitement
 
-L'analyse des sentiments est basée sur les notes attribuées par les utilisateurs.
+## Dépendances techniques
 
-Pour chaque ville, le système :
-1. Calcule le nombre d'avis positifs, neutres et négatifs
-2. Convertit ces nombres en pourcentages
-3. Stocke ces informations dans la collection `mots_villes`
+- **Python 3.9**
+- **SpaCy** avec le modèle français `fr_core_news_sm`
+- **pymongo** pour l'interaction avec MongoDB
+- **pandas**, **matplotlib**, **seaborn** pour l'analyse et la visualisation
+- **tabulate** pour la mise en forme des résultats
 
-### Traitement des villes
+## Utilisation dans le projet global
 
-Le processeur traite les villes une par une, selon ce flux :
+Le module "Avis Processor" doit être exécuté après le scraping des avis et avant la visualisation frontend. Il fournit les données traitées nécessaires pour générer des nuages de mots et des analyses de sentiment utilisés par l'interface utilisateur.
 
-1. **Sélection des villes non traitées** :
-   ```python
-   villes_non_traitees = list(villes_collection.find({
-       "$or": [
-           {"statut_traitement": "non_traite"},
-           {"statut_traitement": {"$exists": False}}
-       ]
-   }))
-   ```
+Pour démarrer uniquement cette partie du projet:
 
-2. **Pour chaque ville** :
-    - Récupération de tous les avis associés
-    - Extraction des mots significatifs de chaque avis
-    - Comptage des mots et calcul de leur fréquence
-    - Analyse du sentiment global
-    - Stockage des résultats dans MongoDB
-    - Mise à jour du statut de traitement
-
-3. **Agrégation et stockage** :
-    - Les mots sont triés par fréquence (poids)
-    - Les 150 mots les plus fréquents sont conservés
-    - Les données sont stockées dans la collection `mots_villes`
-    - Les collections `villes` et `avis` sont mises à jour
-
-### Utilisation d'Apache Spark
-
-Le processeur s'exécute dans un environnement Apache Spark pour permettre le traitement distribué des données :
-
-1. **Initialisation de SparkSession** :
-   ```python
-   def init_spark():
-       spark = SparkSession.builder \
-           .appName("AvisProcessor") \
-           .config("spark.mongodb.input.uri", mongo_uri + mongo_db) \
-           .config("spark.mongodb.output.uri", mongo_uri + mongo_db) \
-           .getOrCreate()
-       return spark
-   ```
-
-2. **Configuration du connecteur MongoDB** :
-    - Le connecteur Spark pour MongoDB est installé
-    - Les pilotes MongoDB sont téléchargés et configurés
-    - Les bibliothèques Python nécessaires sont installées
-
-3. **Soumission du job** :
-    - Le script `submit.sh` soumet le job de traitement à Spark
-    - Le traitement peut être distribué sur plusieurs workers
-    - Les résultats sont écrits directement dans MongoDB
-
-### Structure de données
-
-#### Collection `mots_villes`
-```json
-{
-  "_id": ObjectId,
-  "city_id": "12345",                 // Code INSEE de la ville
-  "ville_nom": "Nom de la ville",
-  "mots": [
-    {"mot": "commerce", "poids": 15},  // Poids = fréquence du mot
-    {"mot": "école", "poids": 12},
-    {"mot": "transport", "poids": 10},
-    ...
-  ],
-  "sentiments": {
-    "positif": 25,                    // Nombre d'avis positifs
-    "neutre": 10,                     // Nombre d'avis neutres
-    "negatif": 5,                     // Nombre d'avis négatifs
-    "positif_percent": 62.5,          // Pourcentage d'avis positifs
-    "neutre_percent": 25.0,           // Pourcentage d'avis neutres
-    "negatif_percent": 12.5           // Pourcentage d'avis négatifs
-  },
-  "date_extraction": ISODate           // Date du traitement
-}
-```
-
-## Vérification et Validation
-
-### Validation du traitement
-
-Le script `verify_processing.py` effectue plusieurs analyses pour vérifier la qualité du traitement :
-
-1. **Statistiques générales** :
-    - Nombre de villes traitées/non traitées
-    - Nombre total de mots extraits
-    - Moyenne de mots par ville
-
-2. **Distribution des sentiments** :
-    - Sentiment positif/neutre/négatif moyen
-    - Distribution des sentiments par ville (histogramme)
-
-3. **Analyse des mots fréquents** :
-    - Top 50 des mots les plus fréquents
-    - Visualisation des 30 mots les plus fréquents (graphique à barres)
-
-4. **Vérification de cohérence** :
-    - Échantillonnage de villes pour vérifier la cohérence entre mots et sentiments
-    - Vérification que les mots extraits correspondent au sentiment global
-
-### Résultats actuels
-
-Les résultats actuels du traitement montrent :
-
-```
-===== STATISTIQUES GÉNÉRALES =====
-Total des villes: 34455
-Villes traitées: 34455 (100.0%)
-Total des mots extraits: 368672
-Moyenne de mots par ville: 35.61
-
-===== DISTRIBUTION DES SENTIMENTS =====
-Sentiment positif moyen: 36.15%
-Sentiment neutre moyen: 51.87%
-Sentiment négatif moyen: 11.99%
-```
-
-Les mots les plus fréquents sont :
-1. "ville" (dominant largement)
-2. "commerce"
-3. "petit"
-4. "bon"
-5. "agréable"
-
-### Exemples de cohérence
-
-Pour montrer la cohérence entre les sentiments et les mots extraits, voici des exemples :
-
-**Ville avec sentiment positif élevé** :
-```
-Avis Gradignan 33170
-Sentiments: Positif 90.5%, Neutre 9.5%, Négatif 0.0%
-Top mots: ville, bordeaux, centre, parc, agréable, commerce...
-```
-
-**Ville avec sentiment mixte** :
-```
-Avis Montévrain 77144
-Sentiments: Positif 69.2%, Neutre 23.1%, Négatif 7.7%
-Top mots: ville, commerce, paris, centre, bourg, bon...
+```bash
+docker-compose up -d mongodb avis-processor-submitter avis-processor-validator
 ```

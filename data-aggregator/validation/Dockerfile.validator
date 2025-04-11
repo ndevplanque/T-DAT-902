@@ -1,0 +1,31 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Installation des dépendances système et Python
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libpq-dev gcc && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Installation des packages Python nécessaires pour la validation et la visualisation
+RUN pip install --no-cache-dir \
+    pymongo \
+    psycopg2-binary \
+    pandas \
+    matplotlib \
+    seaborn
+
+# Créer le répertoire pour les résultats de validation et s'assurer qu'il est accessible en écriture
+RUN mkdir -p /app/results && \
+    chmod 777 /app/results
+
+# Définir les variables d'environnement par défaut
+ENV OUTPUT_DIR=/app/results
+
+# Copier le script de validation
+COPY aggregation_validator.py /app/aggregation_validator.py
+
+# Point d'entrée simplifié
+CMD ["python", "/app/aggregation_validator.py"]

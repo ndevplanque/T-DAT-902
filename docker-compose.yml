@@ -347,6 +347,61 @@ services:
       - mongodb
       - avis-processor-submitter
 
+  # Service pour les agrégations par département et région
+  data-aggregator:
+    build:
+      context: ./data-aggregator
+      dockerfile: Dockerfile
+    container_name: data-aggregator
+    restart: on-failure
+    environment:
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
+      - MONGO_DB=villes_france
+      - POSTGRES_DB=gis_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+    depends_on:
+      - mongodb
+      - postgres
+      - avis-scraper
+      - avis-processor-submitter
+      - avis-processor-validator
+      - geo-data-importer
+    volumes:
+      - ./data-aggregator:/app
+      - ./logs:/app/logs
+    networks:
+      - t-dat-902-network
+
+  # Service de validation des agrégations
+  data-aggregator-validator:
+    build:
+      context: ./data-aggregator/validation
+      dockerfile: Dockerfile.validator
+    container_name: data-aggregator-validator
+    restart: "no"
+    environment:
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
+      - MONGO_DB=villes_france
+      - POSTGRES_DB=gis_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - OUTPUT_DIR=/app/results
+    depends_on:
+      - mongodb
+      - postgres
+      - data-aggregator
+    volumes:
+      - ./data-aggregator/validation:/app
+      - ./logs:/app/logs
+      - ./data-aggregator/validation/results:/app/results
+    networks:
+      - t-dat-902-network
+
 networks:
   t-dat-902-network:
     driver: bridge

@@ -1,0 +1,183 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Rapport de validation des données agrégées</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #1a5276; }
+            h2 { color: #2874a6; margin-top: 30px; }
+            .success { color: green; }
+            .warning { color: orange; }
+            .error { color: red; }
+            table { border-collapse: collapse; margin: 15px 0; }
+            table, th, td { border: 1px solid #ddd; }
+            th, td { padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .image-container { margin: 20px 0; }
+            .image-container img { max-width: 100%; }
+        </style>
+    </head>
+    <body>
+        <h1>Rapport de validation des données agrégées</h1>
+        <p>Date de génération: 11/04/2025 13:53:36</p>
+        
+        <h2>Résumé des validations</h2>
+        <table>
+            <tr>
+                <th>Test</th>
+                <th>Résultat</th>
+            </tr>
+    
+                <tr>
+                    <td>collection_stats - villes_has_data</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>collection_stats - has_aggregated_departments</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>collection_stats - has_aggregated_regions</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>collection_stats - dept_count_reasonable</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>collection_stats - region_count_reasonable</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>department_validation - count_match</td>
+                    <td class="error">False</td>
+                </tr>
+                
+                <tr>
+                    <td>department_validation - structure_valid</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>department_validation - dept_to_region_consistency</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>region_validation - count_match</td>
+                    <td class="error">False</td>
+                </tr>
+                
+                <tr>
+                    <td>region_validation - structure_valid</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>region_validation - dept_count_consistency</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>notes_validation - notes_in_range_dept</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>notes_validation - notes_in_range_region</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>notes_validation - sentiments_percents_valid_dept</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>notes_validation - sentiments_percents_valid_region</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>rollup_consistency - avis_count_consistent_ville_dept</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>rollup_consistency - villes_count_consistent</td>
+                    <td class="error">False</td>
+                </tr>
+                
+                <tr>
+                    <td>rollup_consistency - avis_count_consistent_dept_region</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>rollup_consistency - villes_count_consistent_dept_region</td>
+                    <td class="success">True</td>
+                </tr>
+                
+                <tr>
+                    <td>anomalies - depts_sans_villes</td>
+                    <td class="error">[]</td>
+                </tr>
+                
+                <tr>
+                    <td>anomalies - regions_sans_depts</td>
+                    <td class="error">[]</td>
+                </tr>
+                
+                <tr>
+                    <td>anomalies - depts_notes_extremes</td>
+                    <td class="error">[]</td>
+                </tr>
+                
+                <tr>
+                    <td>anomalies - regions_sentiments_extremes</td>
+                    <td class="error">[]</td>
+                </tr>
+                
+                <tr>
+                    <td>anomalies - mots_bizarres</td>
+                    <td class="error">[]</td>
+                </tr>
+                
+        </table>
+        
+        <h2>Visualisations</h2>
+    
+            <div class="image-container">
+                <h3>Relation Avis Notes</h3>
+                <img src="relation_avis_notes.png" alt="relation_avis_notes.png" />
+            </div>
+            
+            <div class="image-container">
+                <h3>Distribution Notes Departements</h3>
+                <img src="distribution_notes_departements.png" alt="distribution_notes_departements.png" />
+            </div>
+            
+            <div class="image-container">
+                <h3>Top10 Departements</h3>
+                <img src="top10_departements.png" alt="top10_departements.png" />
+            </div>
+            
+            <div class="image-container">
+                <h3>Sentiments Regions</h3>
+                <img src="sentiments_regions.png" alt="sentiments_regions.png" />
+            </div>
+            
+            <div class="image-container">
+                <h3>Top Mots Frequents</h3>
+                <img src="top_mots_frequents.png" alt="top_mots_frequents.png" />
+            </div>
+            
+    </body>
+    </html>
+    

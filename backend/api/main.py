@@ -4,10 +4,11 @@ from flask_cors import CORS
 from v1.models.bounds import Bounds
 from v1.features.health.service import health as v1_health
 from v1.features.map_areas.service import map_areas as v1_map_areas
-from v1.features.price_tables.service import price_tables as v1_price_tables
+from v1.features.area_listing.service import area_listing as v1_area_listing
 from v1.features.word_clouds.service import word_clouds as v1_word_clouds
 from v1.features.sentiments.service import sentiments as v1_sentiments
 from v1.features.area_details.service import area_details as v1_area_details
+from v1.features.area_transactions.service import area_transactions as v1_area_transactions
 import v1.features.databases.service as databases
 
 # Configuration de l'application Flask
@@ -35,11 +36,6 @@ def api_v1_map_areas(zoom, sw_lat, sw_lon, ne_lat, ne_lon):
     return v1_map_areas(bounds)
 
 
-@app.route('/api/v1/price-tables', methods=['GET'])
-def api_v1_price_tables():
-    return v1_price_tables()
-
-
 @app.route('/api/v1/sentiments/<entity>/<id>', methods=['GET'])
 def api_v1_sentiments(entity, id):
     return v1_sentiments(entity, id)
@@ -50,9 +46,19 @@ def api_v1_word_clouds(entity, id):
     return v1_word_clouds(entity, id)
 
 
+@app.route('/api/v1/area-listing', methods=['GET'])
+def api_v1_area_listing():
+    return v1_area_listing()
+
+
 @app.route('/api/v1/area-details/<entity>/<id>', methods=['GET'])
 def api_v1_area_details(entity, id):
     return v1_area_details(entity, id)
+
+
+@app.route('/api/v1/area-transactions/<entity>/<id>', methods=['GET'])
+def api_v1_area_transactions(entity, id):
+    return v1_area_transactions(entity, id)
 
 
 @app.route('/api/v1/mongodb/schema', methods=['GET'])

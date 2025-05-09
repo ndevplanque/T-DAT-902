@@ -3,18 +3,18 @@ import v1.database.queries as q
 import numpy as np
 
 
-def get_cities_prices():
-    data, aggs = parse_query_result(q.list_cities_prices())
+def get_cities():
+    data, aggs = parse_query_result(q.list_cities())
     return response_builder("Villes", data, aggs)
 
 
-def get_departments_prices():
-    data, aggs = parse_query_result(q.list_departments_prices())
+def get_departments():
+    data, aggs = parse_query_result(q.list_departments())
     return response_builder("Départements", data, aggs)
 
 
-def get_regions_prices():
-    data, aggs = parse_query_result(q.list_regions_prices())
+def get_regions():
+    data, aggs = parse_query_result(q.list_regions())
     return response_builder("Régions", data, aggs)
 
 

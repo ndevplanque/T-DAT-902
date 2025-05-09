@@ -1,18 +1,53 @@
 import streamlit as st
-from utils import cache
+from utils import cache, api
 from components.PriceTable import PriceTable
+from components.AreaDetails import AreaDetails
 
-st.title("Tableau des Prix Immobiliers 💰")
+st.title("Comparatif des Prix Immobiliers 💰")
 
 try:
-    data = cache.get_price_tables()
-    if not data or "price_tables" not in data:
+    areas = cache.get_area_listing()
+    entities = ['regions', 'departments', 'cities']
+
+    # Vérification de la validité des données
+    if not areas or not all(entity in areas for entity in entities):
         raise RuntimeError("Données invalides ou indisponibles.")
 
-    for table in data["price_tables"]:
-        if table is not None:
-            PriceTable(table)
-        else:
-            st.error("Impossible de récupérer les données.")
+    option = st.selectbox(
+        "Choix de la localité",
+        [
+            f"{item['name']} ({item['id']})"
+            for entity in entities
+            for item in areas[entity]['items']
+        ],
+        index=None,
+        placeholder="Strasbourg...",
+    )
+
+    if option is not None:
+        # Extraction de l'ID et de la localité sélectionnée
+        selected_name = option.split(" (")[0].strip()
+        selected_id = option.split(" (")[1].strip("()")
+
+        # Affichage des détails de la localité sélectionnée
+        st.write(f"Localité sélectionnée : {selected_name} {selected_id}")
+
+        # Récupération des détails de la localité
+        for entity in entities:
+            for item in areas[entity]['items']:
+                if item["id"] == selected_id and item["name"] == selected_name:
+                    # Affichage des détails de la localité
+                    st.write(f"Groupe : {areas[entity]['title']}")
+                    st.write(f"Nom : {item['name']}")
+                    st.write(f"ID : {item['id']}")
+                    area_transactions = api.v1_area_transactions(entity, item["id"])
+                    area_details = api.v1_area_details(entity, item["id"])
+                    AreaDetails(area_details, area_transactions)
+                    break
+    else:
+        # Sinon, on affiche le listing des prix par type de localité
+        st.subheader("Pour la France entière")
+        for entity in entities:
+            PriceTable(areas[entity])
 except RuntimeError as e:
     st.error(f"Erreur : {str(e)}")  # Afficher proprement l'erreur sans crasher l'UI

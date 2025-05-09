@@ -8,7 +8,7 @@ from v1.features.price_tables.service import price_tables as v1_price_tables
 from v1.features.word_clouds.service import word_clouds as v1_word_clouds
 from v1.features.sentiments.service import sentiments as v1_sentiments
 from v1.features.area_details.service import area_details as v1_area_details
-import v1.features.mongodb.service as v1_mongodb
+import v1.features.databases.service as databases
 
 # Configuration de l'application Flask
 logs.info("Starting Homepedia API")
@@ -57,7 +57,12 @@ def api_v1_area_details(entity, id):
 
 @app.route('/api/v1/mongodb/schema', methods=['GET'])
 def api_v1_mongodb_schema():
-    return v1_mongodb.schema()
+    return databases.mongodb_schema()
+
+
+@app.route('/api/v1/postgres/schema', methods=['GET'])
+def api_v1_postgres_schema():
+    return databases.postgres_schema()
 
 
 # Handler générique pour les erreurs

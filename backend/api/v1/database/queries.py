@@ -26,12 +26,12 @@ def list_regions_map_areas(bounds: Bounds):
 
 
 def list_cities_prices():
-    return "SELECT city_id, name FROM cities;"
+    return "SELECT city_id, name FROM cities ORDER BY city_id;"
 
 
 def list_departments_prices():
-    return "SELECT department_id, name FROM departments;"
+    return "SELECT department_id, name FROM departments ORDER BY department_id;"
 
 
 def list_regions_prices():
-    return "SELECT region_id, name FROM regions;"
+    return "SELECT region_id, name FROM regions ORDER BY region_id;"

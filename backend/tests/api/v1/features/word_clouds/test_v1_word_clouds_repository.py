@@ -1,4 +1,4 @@
-from v1.features.word_clouds.repository import get_word_cloud
+from v1.features.word_clouds.repository import get_word_frequencies
 
 
 def test_get_word_cloud():
@@ -6,7 +6,7 @@ def test_get_word_cloud():
     entity = "cities"
     id = 1
 
-    result = get_word_cloud(entity, id)
+    result = get_word_frequencies(entity, id)
 
     assert result == {
         'Lorem': 100,

@@ -9,17 +9,17 @@ st.title("Comparatif des Prix Immobiliers 💰")
 
 try:
     areas = cache.get_area_listing()
-    entities = ['regions', 'departments', 'cities']
+    entities = ['cities']  # ['regions', 'departments', 'cities']
 
     # Vérification de la validité des données
     if not areas or not all(entity in areas for entity in entities):
         raise RuntimeError("Données invalides ou indisponibles.")
 
     option = st.selectbox(
-        "Choix de la localité",
-        [
+        label="Choix de la localité",
+        options=[
             f"{item['name']} ({item['id']})"
-            for entity in ['cities']#entities
+            for entity in entities
             for item in areas[entity]['items']
         ],
         index=None,
@@ -31,17 +31,10 @@ try:
         selected_name = option.split(" (")[0].strip()
         selected_id = option.split(" (")[1].strip("()")
 
-        # Affichage des détails de la localité sélectionnée
-        # st.write(f"Localité sélectionnée : {selected_name} {selected_id}")
-
         # Récupération des détails de la localité
         for entity in entities:
             for item in areas[entity]['items']:
                 if item["id"] == selected_id and item["name"] == selected_name:
-                    # Affichage des détails de la localité
-                    # st.write(f"Groupe : {areas[entity]['title']}")
-                    # st.write(f"Nom : {item['name']}")
-                    # st.write(f"ID : {item['id']}")
                     area_transactions = api.v1_area_transactions(entity, item["id"])
                     area_details = api.v1_area_details(entity, item["id"])
                     AreaDetails(item, area_details, area_transactions)

@@ -19,7 +19,7 @@ try:
         "Choix de la localité",
         [
             f"{item['name']} ({item['id']})"
-            for entity in entities
+            for entity in ['cities']#entities
             for item in areas[entity]['items']
         ],
         index=None,

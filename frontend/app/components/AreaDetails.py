@@ -1,41 +1,65 @@
 import streamlit as st
-import pandas as pd
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+
 
 def AreaDetails(item, area_details, area_transactions):
     st.write("---")
     st.subheader(f"Notes de {item['name']}")
 
     st.write(f"Résultats basés sur {area_details['rating']['count']} avis")
-    grades = area_details["rating"]["grades"]
+
+    grades = area_details["rating"]["grades"] if "rating" in area_details and "grades" in area_details["rating"] else {}
+
+    g_education = grades['education'] if 'education' in grades else 0
+    g_environnement = grades['environnement'] if 'environnement' in grades else 0
+    g_securite = grades['securite'] if 'securite' in grades else 0
+    g_sport_loisir = grades['sport_loisir'] if 'sport_loisir' in grades else 0
+    g_vie_pratique = grades['vie_pratique'] if 'vie_pratique' in grades else 0
 
     educ, envi, secu, spor, life = st.columns(5, border=True)
-    educ.markdown(f"<div style='text-align: center;'><p>Éducation</p><p style='font-size: 36px'>{grades['education']}</p></div>", unsafe_allow_html=True)
-    envi.markdown(f"<div style='text-align: center;'><p>Environnement</p><p style='font-size: 36px'>{grades['environnement']}</p></div>", unsafe_allow_html=True)
-    secu.markdown(f"<div style='text-align: center;'><p>Sécurité</p><p style='font-size: 36px'>{grades['securite']}</p></div>", unsafe_allow_html=True)
-    spor.markdown(f"<div style='text-align: center;'><p>Sport & Loisirs</p><p style='font-size: 36px'>{grades['sport_loisir']}</p></div>", unsafe_allow_html=True)
-    life.markdown(f"<div style='text-align: center;'><p>Vie Pratique</p><p style='font-size: 36px'>{grades['vie_pratique']}</p></div>", unsafe_allow_html=True)
+
+    educ.markdown(
+        f"<div style='text-align: center;'><p>Éducation</p><p style='font-size: 36px'>{g_education}</p></div>",
+        unsafe_allow_html=True)
+    envi.markdown(
+        f"<div style='text-align: center;'><p>Environnement</p><p style='font-size: 36px'>{g_environnement}</p></div>",
+        unsafe_allow_html=True)
+    secu.markdown(
+        f"<div style='text-align: center;'><p>Sécurité</p><p style='font-size: 36px'>{g_securite}</p></div>",
+        unsafe_allow_html=True)
+    spor.markdown(
+        f"<div style='text-align: center;'><p>Sport & Loisirs</p><p style='font-size: 36px'>{g_sport_loisir}</p></div>",
+        unsafe_allow_html=True)
+    life.markdown(
+        f"<div style='text-align: center;'><p>Vie Pratique</p><p style='font-size: 36px'>{g_vie_pratique}</p></div>",
+        unsafe_allow_html=True)
 
     st.write("---")
-
-    sentiments_fig = build_sentiments_fig(area_details['sentiments'])
-    wordcloud_fig = build_wordcloud_fig(area_details['word_frequencies'])
 
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
         st.subheader("Analyse des sentiments")
-        st.plotly_chart(sentiments_fig)
+        if 'sentiments' not in area_details or area_details['sentiments'] == {}:
+            st.write("Aucun sentiment disponible pour cette localité.")
+        else:
+            sentiments_fig = build_sentiments_fig(area_details['sentiments'])
+            st.plotly_chart(sentiments_fig)
 
     with col2:
         st.subheader("Nuage de mots")
-        st.pyplot(wordcloud_fig)
+        if 'word_frequencies' not in area_details or area_details['word_frequencies'] == {}:
+            st.write("Aucun mot disponible pour cette localité.")
+        else:
+            wordcloud_fig = build_wordcloud_fig(area_details['word_frequencies'])
+            st.pyplot(wordcloud_fig)
 
     st.write("---")
     st.subheader("Transactions Immobilières")
     st.write(area_transactions)
+
 
 def build_wordcloud_fig(data):
     # Générer le word cloud
@@ -44,6 +68,7 @@ def build_wordcloud_fig(data):
     ax.imshow(wc, interpolation='bilinear')
     ax.axis("off")
     return fig
+
 
 def build_sentiments_fig(data):
     # Traduction des clés en labels

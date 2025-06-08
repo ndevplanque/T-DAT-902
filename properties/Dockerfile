@@ -33,7 +33,7 @@ ENV PYSPARK_PYTHON=/usr/local/bin/python
 ENV PYSPARK_DRIVER_PYTHON=/usr/local/bin/python
 
 # SPARK_CLASSPATH pour le driver PostgreSQL (monté via volume)
-ENV SPARK_CLASSPATH=/opt/spark/jars/postgresql-42.7.4.jar
+ENV SPARK_CLASSPATH=/app/jars/postgresql-42.7.4.jar
 
 COPY wait-for-postgres.sh /wait-for-postgres.sh
 RUN chmod +x /wait-for-postgres.sh

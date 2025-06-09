@@ -186,7 +186,7 @@ services:
       context: ./geo_importer
       dockerfile: Dockerfile
     container_name: geo-data-importer
-    restart: on-failure
+    restart: "no"
     depends_on:
       - postgres
       - namenode
@@ -220,14 +220,20 @@ services:
     build:
       context: ./properties
     container_name: properties-importer
-    restart: on-failure
+    restart: "no"
     mem_limit: 4g
     memswap_limit: 4g
     depends_on:
-      - postgres
-      - spark-master
-      - spark-worker
-      - spark-worker-2
+      postgres:
+        condition: service_healthy
+      spark-master:
+        condition: service_started
+      spark-worker:
+        condition: service_started
+      spark-worker-2:
+        condition: service_started
+      geo-data-importer:
+        condition: service_completed_successfully
     environment:
       - POSTGRES_DB=gis_db
       - POSTGRES_USER=postgres
@@ -360,18 +366,25 @@ services:
       context: ./avis-processor
       dockerfile: Dockerfile
     container_name: avis-processor-submitter
-    restart: on-failure
+    restart: "no"
     environment:
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
       - MONGO_DB=villes_france
       - SPARK_MASTER=spark://spark-master:7077
       - WAIT_FOR_SCRAPER=${ENABLE_SCRAPER:-true} # Ne pas attendre le scraper s'il est désactivé
     depends_on:
-      - mongodb
-      - spark-master
-      - spark-worker
-      - spark-worker-2
-      - avis-scraper
+      mongodb:
+        condition: service_healthy
+      spark-master:
+        condition: service_started
+      spark-worker:
+        condition: service_started
+      spark-worker-2:
+        condition: service_started
+      avis-scraper:
+        condition: service_completed_successfully
+      properties-importer:
+        condition: service_completed_successfully
     volumes:
       - ./avis-processor:/app
       - ./logs:/app/logs

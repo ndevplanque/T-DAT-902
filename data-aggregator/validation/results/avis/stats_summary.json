@@ -1,6 +1,6 @@
 {
   "general": {
-    "date_rapport": "2025-04-11T13:53:36.026883",
+    "date_rapport": "2025-06-09T14:04:13.744105",
     "nombre_villes": 34455,
     "nombre_avis": 54656,
     "nombre_departements": 94,
@@ -8,38 +8,10 @@
   },
   "top_departements": [
     {
-      "id": "53",
-      "nom": "Mayenne",
-      "nombre_villes": 30,
-      "nombre_avis": 154,
-      "note_moyenne": 3.7
-    },
-    {
       "id": "05",
       "nom": "Hautes-Alpes",
       "nombre_villes": 17,
       "nombre_avis": 102,
-      "note_moyenne": 3.7
-    },
-    {
-      "id": "85",
-      "nom": "Vendée",
-      "nombre_villes": 91,
-      "nombre_avis": 565,
-      "note_moyenne": 3.7
-    },
-    {
-      "id": "49",
-      "nom": "Maine-et-Loire",
-      "nombre_villes": 61,
-      "nombre_avis": 503,
-      "note_moyenne": 3.7
-    },
-    {
-      "id": "64",
-      "nom": "Pyrénées-Atlantiques",
-      "nombre_villes": 57,
-      "nombre_avis": 405,
       "note_moyenne": 3.7
     },
     {
@@ -50,6 +22,20 @@
       "note_moyenne": 3.7
     },
     {
+      "id": "53",
+      "nom": "Mayenne",
+      "nombre_villes": 30,
+      "nombre_avis": 154,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "64",
+      "nom": "Pyrénées-Atlantiques",
+      "nombre_villes": 57,
+      "nombre_avis": 405,
+      "note_moyenne": 3.7
+    },
+    {
       "id": "15",
       "nom": "Cantal",
       "nombre_villes": 15,
@@ -57,24 +43,38 @@
       "note_moyenne": 3.7
     },
     {
-      "id": "27",
-      "nom": "Eure",
-      "nombre_villes": 60,
-      "nombre_avis": 365,
-      "note_moyenne": 3.6
+      "id": "49",
+      "nom": "Maine-et-Loire",
+      "nombre_villes": 61,
+      "nombre_avis": 503,
+      "note_moyenne": 3.7
     },
     {
-      "id": "44",
-      "nom": "Loire-Atlantique",
-      "nombre_villes": 131,
-      "nombre_avis": 1442,
-      "note_moyenne": 3.6
+      "id": "85",
+      "nom": "Vendée",
+      "nombre_villes": 91,
+      "nombre_avis": 565,
+      "note_moyenne": 3.7
     },
     {
       "id": "19",
       "nom": "Corrèze",
       "nombre_villes": 22,
       "nombre_avis": 138,
+      "note_moyenne": 3.6
+    },
+    {
+      "id": "29",
+      "nom": "Finistère",
+      "nombre_villes": 116,
+      "nombre_avis": 936,
+      "note_moyenne": 3.6
+    },
+    {
+      "id": "56",
+      "nom": "Morbihan",
+      "nombre_villes": 104,
+      "nombre_avis": 701,
       "note_moyenne": 3.6
     }
   ],

@@ -50,6 +50,7 @@ services:
       - postgres-wal:/var/lib/postgresql/pg_wal
       - ./sql/create_polygons_tables.sql:/docker-entrypoint-initdb.d/create_polygons_tables.sql
       - ./sql/create_properties_table.sql:/docker-entrypoint-initdb.d/create_properties_table.sql
+      - ./sql/create_properties_aggregations_tables.sql:/docker-entrypoint-initdb.d/create_properties_aggregations_tables.sql
     networks:
       - t-dat-902-network
     healthcheck:
@@ -433,6 +434,7 @@ services:
       - avis-processor-submitter
       - avis-processor-validator
       - geo-data-importer
+      - properties-importer
     volumes:
       - ./data-aggregator:/app
       - ./logs:/app/logs

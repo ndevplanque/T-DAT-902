@@ -1,0 +1,24 @@
+Test d'écriture du log
+2025-06-09 14:04:14,852 - INFO - Démarrage de la validation des agrégations properties
+2025-06-09 14:04:14,878 - INFO - Connexion à PostgreSQL réussie
+2025-06-09 14:04:14,878 - INFO - Vérification de la disponibilité des agrégations properties...
+2025-06-09 14:04:14,912 - INFO - Agrégations disponibles: 30860 villes, 97 départements, 17 régions
+2025-06-09 14:04:14,947 - INFO - Colonnes transactions dans properties_cities_stats: ['nb_transactions', 'nb_transactions_with_surface_bati', 'nb_transactions_with_surface_terrain', 'premiere_transaction', 'derniere_transaction', 'densite_transactions_km2']
+2025-06-09 14:04:14,948 - INFO - Colonnes transactions dans properties_departments_stats: ['nb_villes_avec_transactions', 'nb_transactions_total', 'nb_transactions_with_surface_bati', 'nb_transactions_with_surface_terrain', 'premiere_transaction', 'derniere_transaction', 'densite_transactions_km2']
+2025-06-09 14:04:14,950 - INFO - Colonnes transactions dans properties_regions_stats: ['nb_departements_avec_transactions', 'nb_villes_avec_transactions', 'nb_transactions_total', 'nb_transactions_with_surface_bati', 'nb_transactions_with_surface_terrain', 'premiere_transaction', 'derniere_transaction', 'densite_transactions_km2']
+2025-06-09 14:04:14,950 - INFO - Validation de la cohérence des données
+2025-06-09 14:04:14,957 - INFO - ✓ Cohérence région-département vérifiée
+2025-06-09 14:04:14,986 - INFO - ✓ Cohérence département-ville vérifiée
+2025-06-09 14:04:14,998 - WARNING - ⚠ 22800 villes ont des prix moyens > 50000€
+2025-06-09 14:04:14,999 - INFO - ✓ Prix: min=1.00€, max=29714413.27€, moyenne=150681.58€
+2025-06-09 14:04:14,999 - INFO - Génération du résumé statistique
+2025-06-09 14:04:15,007 - INFO - ✓ Cities: 30860 entités, prix moyen: 150681.58€, transactions moyennes: 31.9
+2025-06-09 14:04:15,008 - INFO - ✓ Departments: 97 entités, prix moyen: 227254.55€, transactions moyennes: 10149.2
+2025-06-09 14:04:15,008 - INFO - ✓ Regions: 17 entités, prix moyen: 251230.39€, transactions moyennes: 57910.2
+2025-06-09 14:04:15,011 - INFO - Création des visualisations
+2025-06-09 14:04:15,324 - INFO - ✓ Graphique prix par région créé
+2025-06-09 14:04:15,590 - INFO - ✓ Graphique relation prix-transactions créé
+2025-06-09 14:04:15,852 - INFO - ✓ Graphique distribution surfaces créé
+2025-06-09 14:04:15,852 - INFO - Génération du rapport de validation
+2025-06-09 14:04:15,853 - INFO - ✓ Rapport HTML généré
+2025-06-09 14:04:15,854 - INFO - Validation terminée avec succès

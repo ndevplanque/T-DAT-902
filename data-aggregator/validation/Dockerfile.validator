@@ -24,8 +24,13 @@ RUN mkdir -p /app/results && \
 # Définir les variables d'environnement par défaut
 ENV OUTPUT_DIR=/app/results
 
-# Copier le script de validation
+# Copier les scripts de validation
 COPY aggregation_validator.py /app/aggregation_validator.py
+COPY properties_aggregation_validator.py /app/properties_aggregation_validator.py
+COPY run_all_validations.sh /app/run_all_validations.sh
 
-# Point d'entrée simplifié
-CMD ["python", "/app/aggregation_validator.py"]
+# Rendre le script exécutable
+RUN chmod +x /app/run_all_validations.sh
+
+# Point d'entrée qui lance les deux validations
+CMD ["bash", "/app/run_all_validations.sh"]

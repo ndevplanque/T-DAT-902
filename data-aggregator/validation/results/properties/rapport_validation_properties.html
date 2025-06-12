@@ -1,0 +1,308 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Rapport de Validation - Agrégations Properties</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .header { background-color: #f0f0f0; padding: 20px; text-align: center; }
+            .section { margin: 20px 0; }
+            .success { color: green; }
+            .warning { color: orange; }
+            .error { color: red; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Rapport de Validation - Agrégations Properties</h1>
+            <p>Généré le: 2025-06-09 14:04:15</p>
+        </div>
+        
+        <div class="section">
+            <h2>Résumé de la Validation</h2>
+            <ul>
+                <li>Régions incohérentes: <span class="success">0</span></li>
+                <li>Départements incohérents: <span class="success">0</span></li>
+                <li>Prix négatifs: <span class="success">0</span></li>
+                <li>Prix extrêmes (>50k€): <span class="warning">22800</span></li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>Statistiques par Niveau</h2>
+            <table>
+                <tr><th>Niveau</th><th>Nombre d'entités</th><th>Prix moyen</th><th>Transactions moyennes</th></tr>
+    
+                <tr>
+                    <td>Cities</td>
+                    <td>30860</td>
+                    <td>150681.58€</td>
+                    <td>31.9</td>
+                </tr>
+            
+                <tr>
+                    <td>Departments</td>
+                    <td>97</td>
+                    <td>227254.55€</td>
+                    <td>10149.2</td>
+                </tr>
+            
+                <tr>
+                    <td>Regions</td>
+                    <td>17</td>
+                    <td>251230.39€</td>
+                    <td>57910.2</td>
+                </tr>
+            
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Top 10 Villes par Nombre de Transactions</h2>
+            <table>
+                <tr><th>Ville</th><th>Transactions</th><th>Prix Moyen</th><th>Prix/m²</th></tr>
+    
+            <tr>
+                <td>Nice</td>
+                <td>4604</td>
+                <td>354343.79€</td>
+                <td>7995.46€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Toulouse</td>
+                <td>4430</td>
+                <td>291627.61€</td>
+                <td>5576.85€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Nantes</td>
+                <td>2672</td>
+                <td>294936.00€</td>
+                <td>4392.76€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Montpellier</td>
+                <td>2566</td>
+                <td>228622.02€</td>
+                <td>4480.72€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Bordeaux</td>
+                <td>2354</td>
+                <td>401237.14€</td>
+                <td>5611.07€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Rennes</td>
+                <td>2006</td>
+                <td>320070.18€</td>
+                <td>4084.60€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Paris 15e Arrondissement</td>
+                <td>1889</td>
+                <td>623259.62€</td>
+                <td>24271.87€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Saint-Étienne</td>
+                <td>1866</td>
+                <td>117144.74€</td>
+                <td>1891.79€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Clermont-Ferrand</td>
+                <td>1851</td>
+                <td>311733.76€</td>
+                <td>3133.12€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Lille</td>
+                <td>1812</td>
+                <td>433301.69€</td>
+                <td>5313.74€/m²</td>
+            </tr>
+        
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Top 10 Villes par Prix Moyen</h2>
+            <table>
+                <tr><th>Ville</th><th>Transactions</th><th>Prix Moyen</th><th>Prix/m²</th></tr>
+    
+            <tr>
+                <td>Châtelaudren-Plouagat</td>
+                <td>102</td>
+                <td>29714413.27€</td>
+                <td>2005.55€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Moussy-le-Neuf</td>
+                <td>34</td>
+                <td>24744567.56€</td>
+                <td>3519.80€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Compans</td>
+                <td>22</td>
+                <td>17016715.57€</td>
+                <td>4646.50€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Pomerol</td>
+                <td>23</td>
+                <td>15738008.70€</td>
+                <td>56018.85€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Corbas</td>
+                <td>89</td>
+                <td>14924059.93€</td>
+                <td>3018.00€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Pauillac</td>
+                <td>253</td>
+                <td>14278416.72€</td>
+                <td>2287.61€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Le Coudray-Montceaux</td>
+                <td>42</td>
+                <td>11921407.14€</td>
+                <td>2762.97€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Saint-Martin-sur-le-Pré</td>
+                <td>27</td>
+                <td>10461707.78€</td>
+                <td>1764.03€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Puiseux-Pontoise</td>
+                <td>3</td>
+                <td>10203683.33€</td>
+                <td>3397.15€/m²</td>
+            </tr>
+        
+            <tr>
+                <td>Chambolle-Musigny</td>
+                <td>10</td>
+                <td>9619000.00€</td>
+                <td>0.00€/m²</td>
+            </tr>
+        
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Top 10 Départements par Nombre de Transactions</h2>
+            <table>
+                <tr><th>Département</th><th>Transactions</th><th>Prix Moyen</th><th>Nb Villes</th></tr>
+    
+            <tr>
+                <td>Nord</td>
+                <td>24647</td>
+                <td>289203.55€</td>
+                <td>629</td>
+            </tr>
+        
+            <tr>
+                <td>Gironde</td>
+                <td>23045</td>
+                <td>529283.81€</td>
+                <td>509</td>
+            </tr>
+        
+            <tr>
+                <td>Loire-Atlantique</td>
+                <td>21180</td>
+                <td>224842.16€</td>
+                <td>207</td>
+            </tr>
+        
+            <tr>
+                <td>Bouches-du-Rhône</td>
+                <td>18627</td>
+                <td>352128.65€</td>
+                <td>133</td>
+            </tr>
+        
+            <tr>
+                <td>Hérault</td>
+                <td>18427</td>
+                <td>243903.96€</td>
+                <td>327</td>
+            </tr>
+        
+            <tr>
+                <td>Paris</td>
+                <td>18109</td>
+                <td>730115.29€</td>
+                <td>20</td>
+            </tr>
+        
+            <tr>
+                <td>Alpes-Maritimes</td>
+                <td>17693</td>
+                <td>435631.44€</td>
+                <td>151</td>
+            </tr>
+        
+            <tr>
+                <td>Charente-Maritime</td>
+                <td>17354</td>
+                <td>192198.59€</td>
+                <td>454</td>
+            </tr>
+        
+            <tr>
+                <td>Finistère</td>
+                <td>17353</td>
+                <td>164405.73€</td>
+                <td>274</td>
+            </tr>
+        
+            <tr>
+                <td>Haute-Garonne</td>
+                <td>17056</td>
+                <td>228554.10€</td>
+                <td>517</td>
+            </tr>
+        
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Visualisations</h2>
+            <p>Les graphiques suivants ont été générés :</p>
+            <ul>
+                <li>prix_regions.png - Prix moyen par région</li>
+                <li>prix_vs_transactions_departements.png - Relation prix vs transactions</li>
+                <li>distribution_surfaces.png - Distribution des surfaces</li>
+            </ul>
+        </div>
+    </body>
+    </html>
+    

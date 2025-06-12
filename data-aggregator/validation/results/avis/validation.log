@@ -1,0 +1,68 @@
+Test d'écriture du log
+2025-06-09 14:04:12,637 - INFO - Logging configuré avec succès. Fichier de log: /app/results/avis/validation.log
+2025-06-09 14:04:12,637 - INFO - Démarrage de la validation des données agrégées
+2025-06-09 14:04:12,637 - INFO - Répertoire de sortie: /app/results/avis
+2025-06-09 14:04:12,638 - INFO - Test d'écriture dans /app/results/avis réussi
+2025-06-09 14:04:12,638 - INFO - Connexion aux bases de données...
+2025-06-09 14:04:12,638 - INFO - Tentative de connexion à MongoDB: mongodb://root:rootpassword@mongodb:27017/, DB: villes_france
+2025-06-09 14:04:12,668 - INFO - Ping MongoDB réussi
+2025-06-09 14:04:12,668 - INFO - Connexion à MongoDB réussie, base de données: villes_france
+2025-06-09 14:04:12,669 - INFO - Test de MongoDB - Liste des collections:
+2025-06-09 14:04:12,670 - INFO - Collections disponibles: ['regions_stats', 'departements_stats', 'avis', 'mots_villes', 'villes']
+2025-06-09 14:04:12,671 - INFO - Tentative de connexion à PostgreSQL...
+2025-06-09 14:04:12,671 - INFO - Paramètres de connexion PostgreSQL: host=postgres, port=5432, dbname=gis_db, user=postgres
+2025-06-09 14:04:12,694 - INFO - Connexion à PostgreSQL réussie
+2025-06-09 14:04:12,695 - INFO - Test de PostgreSQL - Liste des tables:
+2025-06-09 14:04:12,736 - INFO - Tables disponibles: ['geography_columns', 'geometry_columns', 'spatial_ref_sys', 'regions', 'departments', 'cities', 'properties_regions_stats', 'properties_cities_stats', 'properties_departments_stats', 'properties']
+2025-06-09 14:04:12,736 - INFO - Vérification des collections nécessaires...
+2025-06-09 14:04:12,737 - INFO - Collections disponibles: ['regions_stats', 'departements_stats', 'avis', 'mots_villes', 'villes']
+2025-06-09 14:04:12,738 - INFO - Toutes les collections sont disponibles: ['villes', 'avis', 'mots_villes', 'departements_stats', 'regions_stats']
+2025-06-09 14:04:12,740 - INFO - Collections non vides: ['villes(1)', 'avis(1)', 'mots_villes(1)', 'departements_stats(1)', 'regions_stats(1)']
+2025-06-09 14:04:12,740 - INFO - Début des validations...
+2025-06-09 14:04:12,740 - INFO - Vérification des statistiques de base des collections...
+2025-06-09 14:04:12,762 - INFO - Statistiques des collections:
+2025-06-09 14:04:12,762 - INFO -   - villes: 34455 documents
+2025-06-09 14:04:12,763 - INFO -   - avis: 54656 documents
+2025-06-09 14:04:12,763 - INFO -   - mots_villes: 10353 documents
+2025-06-09 14:04:12,763 - INFO -   - departements_stats: 94 documents
+2025-06-09 14:04:12,763 - INFO -   - regions_stats: 12 documents
+2025-06-09 14:04:12,763 - INFO - Statistiques de base vérifiées avec succès
+2025-06-09 14:04:12,763 - INFO - Validation des agrégations par département...
+2025-06-09 14:04:12,782 - INFO - Validation des départements: MongoDB=94, PostgreSQL=109, Cohérent=False
+2025-06-09 14:04:12,784 - INFO - Structure des départements valide: True
+2025-06-09 14:04:12,786 - INFO - Cohérence département-région: True
+2025-06-09 14:04:12,786 - INFO - Agrégations par département validées avec succès
+2025-06-09 14:04:12,786 - INFO - Validation des agrégations par région...
+2025-06-09 14:04:12,787 - INFO - Validation des régions: MongoDB=12, PostgreSQL=26, Cohérent=False
+2025-06-09 14:04:12,788 - INFO - Structure des régions valide: True
+2025-06-09 14:04:12,789 - INFO - Cohérence du nombre de départements dans les régions: True
+2025-06-09 14:04:12,789 - INFO - Agrégations par région validées avec succès
+2025-06-09 14:04:12,789 - INFO - Validation des calculs d'agrégation...
+2025-06-09 14:04:12,792 - INFO - Validation des notes et sentiments: {'notes_in_range_dept': True, 'notes_in_range_region': True, 'sentiments_percents_valid_dept': True, 'sentiments_percents_valid_region': True}
+2025-06-09 14:04:12,793 - INFO - Calculs d'agrégation validés avec succès
+2025-06-09 14:04:12,793 - INFO - Vérification de la cohérence entre niveaux...
+2025-06-09 14:04:12,801 - INFO - Cohérence avis villes-départements: 49989 vs 49989, match=True
+2025-06-09 14:04:12,801 - INFO - Cohérence nombre de villes: 34455 vs 5477, match=False
+2025-06-09 14:04:12,801 - INFO - Cohérence avis départements-régions: 49989 vs 49989, match=True
+2025-06-09 14:04:12,801 - INFO - Cohérence nombre de villes départements-régions: 5477 vs 5477, match=True
+2025-06-09 14:04:12,801 - INFO - Cohérence entre niveaux vérifiée avec succès
+2025-06-09 14:04:12,801 - INFO - Recherche d'anomalies...
+2025-06-09 14:04:12,807 - INFO - Aucune anomalie de type 'depts_sans_villes' détectée
+2025-06-09 14:04:12,807 - INFO - Aucune anomalie de type 'regions_sans_depts' détectée
+2025-06-09 14:04:12,807 - INFO - Aucune anomalie de type 'depts_notes_extremes' détectée
+2025-06-09 14:04:12,807 - INFO - Aucune anomalie de type 'regions_sentiments_extremes' détectée
+2025-06-09 14:04:12,809 - INFO - Aucune anomalie de type 'mots_bizarres' détectée
+2025-06-09 14:04:12,809 - INFO - Recherche d'anomalies terminée avec succès
+2025-06-09 14:04:12,809 - INFO - Génération des visualisations...
+2025-06-09 14:04:13,741 - INFO - Visualisations générées dans le répertoire /app/results/avis
+2025-06-09 14:04:13,743 - INFO - Visualisations générées avec succès
+2025-06-09 14:04:13,743 - INFO - Exportation des statistiques au format JSON...
+2025-06-09 14:04:13,792 - INFO - Statistiques exportées au format JSON: /app/results/avis/stats_summary.json
+2025-06-09 14:04:13,794 - INFO - Statistiques exportées avec succès
+2025-06-09 14:04:13,794 - INFO - Génération du rapport de synthèse...
+2025-06-09 14:04:13,796 - INFO - Rapport de validation généré: /app/results/avis/rapport_validation.html
+2025-06-09 14:04:13,796 - INFO - Rapport de synthèse généré avec succès
+2025-06-09 14:04:13,797 - INFO - Validation des données agrégées terminée avec succès
+2025-06-09 14:04:13,797 - INFO - Résultats disponibles dans le répertoire: /app/results/avis
+2025-06-09 14:04:13,799 - INFO - Connexion MongoDB fermée
+2025-06-09 14:04:13,799 - INFO - Connexion PostgreSQL fermée

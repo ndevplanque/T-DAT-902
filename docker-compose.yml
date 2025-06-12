@@ -49,8 +49,14 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - postgres-wal:/var/lib/postgresql/pg_wal
       - ./sql/create_polygons_tables.sql:/docker-entrypoint-initdb.d/create_polygons_tables.sql
+      - ./sql/create_properties_table.sql:/docker-entrypoint-initdb.d/create_properties_table.sql
     networks:
       - t-dat-902-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Hadoop avec platform spécifique
   namenode:
@@ -92,12 +98,15 @@ services:
     restart: always
     environment:
       - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
       - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
     ports:
       - "8080:8080"
       - "7077:7077"
     volumes:
       - ./geo_importer/jars:/opt/bitnami/spark/custom-jars
+      - ./properties/jars:/opt/bitnami/spark/custom-jars
+      - ./properties/CSV_DVF:/properties/CSV_DVF
     networks:
       - t-dat-902-network
 
@@ -109,11 +118,12 @@ services:
     container_name: spark-worker
     restart: always
     environment:
-      - PYSPARK_PYTHON=/usr/bin/python3.9
+      - PYSPARK_PYTHON=/opt/bitnami/python/bin/python3
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=1G
-      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=4G
+      - SPARK_WORKER_CORES=2
+      - SPARK_DAEMON_MEMORY=1g
       - JAVA_HOME=/opt/bitnami/java
       - SPARK_CLASSPATH=/opt/bitnami/spark/custom-jars/*
       - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
@@ -121,6 +131,8 @@ services:
       - spark-master
     volumes:
       - ./geo_importer/jars:/opt/bitnami/spark/custom-jars
+      - ./properties/jars:/opt/bitnami/spark/custom-jars
+      - ./properties/CSV_DVF:/properties/CSV_DVF
     networks:
       - t-dat-902-network
 
@@ -132,11 +144,12 @@ services:
     container_name: spark-worker-2
     restart: always
     environment:
-      - PYSPARK_PYTHON=/usr/bin/python3.9
+      - PYSPARK_PYTHON=/opt/bitnami/python/bin/python3
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=1G
-      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=8G
+      - SPARK_WORKER_CORES=4
+      - SPARK_DAEMON_MEMORY=1g
       - JAVA_HOME=/opt/bitnami/java
       - SPARK_CLASSPATH=/opt/bitnami/spark/custom-jars/*
       - JAVA_OPTS=-Dio.netty.tryReflectionSetAccessible=true --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED
@@ -144,6 +157,7 @@ services:
       - spark-master
     volumes:
       - ./geo_importer/jars:/opt/bitnami/spark/custom-jars
+      - ./properties/CSV_DVF:/properties/CSV_DVF
     networks:
       - t-dat-902-network
 
@@ -172,7 +186,7 @@ services:
       context: ./geo_importer
       dockerfile: Dockerfile
     container_name: geo-data-importer
-    restart: on-failure
+    restart: "no"
     depends_on:
       - postgres
       - namenode
@@ -197,6 +211,45 @@ services:
       - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.9
     volumes:
       - ./geo_importer:/app
+      - ./geo_importer/jars:/app/jars
+    networks:
+      - t-dat-902-network
+
+  # Service d'importation de données immobilières
+  properties-importer:
+    build:
+      context: ./properties
+    container_name: properties-importer
+    restart: "no"
+    mem_limit: 4g
+    memswap_limit: 4g
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spark-master:
+        condition: service_started
+      spark-worker:
+        condition: service_started
+      spark-worker-2:
+        condition: service_started
+      geo-data-importer:
+        condition: service_completed_successfully
+    environment:
+      - POSTGRES_DB=gis_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - PYSPARK_PYTHON=/opt/bitnami/python/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/local/bin/python
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_APP_NAME=Property_Import
+      - SPARK_JARS=/app/jars/postgresql-42.7.4.jar
+      - CSV_DVF_PATH=/properties/CSV_DVF
+      - CHUNK_SIZE=10000
+    volumes:
+      - ./properties/CSV_DVF:/properties/CSV_DVF
+      - ./properties/jars:/app/jars
     networks:
       - t-dat-902-network
 
@@ -212,7 +265,7 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=rootpassword
     volumes:
       - mongodb_data:/data/db
-      - ./avis-scraper/mongo-dump:/dump  # Monter le répertoire avec les dumps MongoDB
+      - ./avis-scraper/mongo-dump:/dump # Monter le répertoire avec les dumps MongoDB
     networks:
       - t-dat-902-network
     healthcheck:
@@ -231,7 +284,7 @@ services:
       mongodb:
         condition: service_healthy
     volumes:
-      - ./avis-scraper/mongo-dump:/dump  # Monter le répertoire avec les dumps MongoDB
+      - ./avis-scraper/mongo-dump:/dump # Monter le répertoire avec les dumps MongoDB
     command: |
       bash -c '
       if [ "$USE_MONGODB_DUMP" = "true" ]; then
@@ -263,11 +316,11 @@ services:
     environment:
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
       - MONGO_DB=villes_france
-      - MAX_VILLES=${MAX_VILLES:-0}  # Limiter pour le test, mettre à 0 pour tout scraper
-      - MAX_WORKERS=${MAX_WORKERS:-8}  # Nombre de threads parallèles
-      - TEST_MODE=${TEST_MODE:-false}  # Activer/désactiver le mode test
-      - UPDATE_MODE=${UPDATE_MODE:-false}  # Activer/désactiver le mode mise à jour
-      - ENABLE_SCRAPER=${ENABLE_SCRAPER:-true}  # Nouvelle variable pour activer/désactiver le scraper
+      - MAX_VILLES=${MAX_VILLES:-0} # Limiter pour le test, mettre à 0 pour tout scraper
+      - MAX_WORKERS=${MAX_WORKERS:-8} # Nombre de threads parallèles
+      - TEST_MODE=${TEST_MODE:-false} # Activer/désactiver le mode test
+      - UPDATE_MODE=${UPDATE_MODE:-false} # Activer/désactiver le mode mise à jour
+      - ENABLE_SCRAPER=${ENABLE_SCRAPER:-true} # Nouvelle variable pour activer/désactiver le scraper
     depends_on:
       mongodb:
         condition: service_healthy
@@ -307,20 +360,31 @@ services:
       - mongodb
       - avis-scraper
 
-  # Service pour executer le traitement des avis des villes pour le nuage de mots et les sentiments simples
+   # Service pour executer le traitement des avis des villes pour le nuage de mots et les sentiments simples
   avis-processor-submitter:
     build:
       context: ./avis-processor
       dockerfile: Dockerfile
     container_name: avis-processor-submitter
-    restart: on-failure
+    restart: "no"
     environment:
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
       - MONGO_DB=villes_france
-      - WAIT_FOR_SCRAPER=${ENABLE_SCRAPER:-true}  # Ne pas attendre le scraper s'il est désactivé
+      - SPARK_MASTER=spark://spark-master:7077
+      - WAIT_FOR_SCRAPER=${ENABLE_SCRAPER:-true} # Ne pas attendre le scraper s'il est désactivé
     depends_on:
-      - mongodb
-      - avis-scraper
+      mongodb:
+        condition: service_healthy
+      spark-master:
+        condition: service_started
+      spark-worker:
+        condition: service_started
+      spark-worker-2:
+        condition: service_started
+      avis-scraper:
+        condition: service_completed_successfully
+      properties-importer:
+        condition: service_completed_successfully
     volumes:
       - ./avis-processor:/app
       - ./logs:/app/logs

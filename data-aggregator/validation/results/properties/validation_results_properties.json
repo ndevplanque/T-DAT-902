@@ -1,0 +1,230 @@
+{
+  "timestamp": "2025-06-09T14:04:15.853664",
+  "validation_results": {
+    "inconsistent_regions": 0,
+    "inconsistent_departments": 0,
+    "price_validation": {
+      "total_cities": 30860,
+      "negative_prices": 0,
+      "extreme_prices": 22800,
+      "min_price": 1.0,
+      "max_price": 29714413.27,
+      "avg_price": 150681.57535644862
+    }
+  },
+  "statistics": {
+    "cities": {
+      "count": 30860,
+      "avg_transactions": 31.901263771872976,
+      "min_transactions": 1,
+      "max_transactions": 4604,
+      "avg_price": 150681.57535644874,
+      "min_price": 1.0,
+      "max_price": 29714413.27
+    },
+    "departments": {
+      "count": 97,
+      "avg_transactions": 10149.20618556701,
+      "min_transactions": 956,
+      "max_transactions": 24647,
+      "avg_price": 227254.55340206187,
+      "min_price": 63857.81,
+      "max_price": 730115.29
+    },
+    "regions": {
+      "count": 17,
+      "avg_transactions": 57910.17647058824,
+      "min_transactions": 956,
+      "max_transactions": 144122,
+      "avg_price": 251230.3864705882,
+      "min_price": 144654.49,
+      "max_price": 513837.33
+    },
+    "top_cities_by_transactions": [
+      {
+        "name": "Nice",
+        "transactions": 4604,
+        "avg_price": 354343.79,
+        "avg_price_m2": 7995.46
+      },
+      {
+        "name": "Toulouse",
+        "transactions": 4430,
+        "avg_price": 291627.61,
+        "avg_price_m2": 5576.85
+      },
+      {
+        "name": "Nantes",
+        "transactions": 2672,
+        "avg_price": 294936.0,
+        "avg_price_m2": 4392.76
+      },
+      {
+        "name": "Montpellier",
+        "transactions": 2566,
+        "avg_price": 228622.02,
+        "avg_price_m2": 4480.72
+      },
+      {
+        "name": "Bordeaux",
+        "transactions": 2354,
+        "avg_price": 401237.14,
+        "avg_price_m2": 5611.07
+      },
+      {
+        "name": "Rennes",
+        "transactions": 2006,
+        "avg_price": 320070.18,
+        "avg_price_m2": 4084.6
+      },
+      {
+        "name": "Paris 15e Arrondissement",
+        "transactions": 1889,
+        "avg_price": 623259.62,
+        "avg_price_m2": 24271.87
+      },
+      {
+        "name": "Saint-Étienne",
+        "transactions": 1866,
+        "avg_price": 117144.74,
+        "avg_price_m2": 1891.79
+      },
+      {
+        "name": "Clermont-Ferrand",
+        "transactions": 1851,
+        "avg_price": 311733.76,
+        "avg_price_m2": 3133.12
+      },
+      {
+        "name": "Lille",
+        "transactions": 1812,
+        "avg_price": 433301.69,
+        "avg_price_m2": 5313.74
+      }
+    ],
+    "top_cities_by_price": [
+      {
+        "name": "Châtelaudren-Plouagat",
+        "transactions": 102,
+        "avg_price": 29714413.27,
+        "avg_price_m2": 2005.55
+      },
+      {
+        "name": "Moussy-le-Neuf",
+        "transactions": 34,
+        "avg_price": 24744567.56,
+        "avg_price_m2": 3519.8
+      },
+      {
+        "name": "Compans",
+        "transactions": 22,
+        "avg_price": 17016715.57,
+        "avg_price_m2": 4646.5
+      },
+      {
+        "name": "Pomerol",
+        "transactions": 23,
+        "avg_price": 15738008.7,
+        "avg_price_m2": 56018.85
+      },
+      {
+        "name": "Corbas",
+        "transactions": 89,
+        "avg_price": 14924059.93,
+        "avg_price_m2": 3018.0
+      },
+      {
+        "name": "Pauillac",
+        "transactions": 253,
+        "avg_price": 14278416.72,
+        "avg_price_m2": 2287.61
+      },
+      {
+        "name": "Le Coudray-Montceaux",
+        "transactions": 42,
+        "avg_price": 11921407.14,
+        "avg_price_m2": 2762.97
+      },
+      {
+        "name": "Saint-Martin-sur-le-Pré",
+        "transactions": 27,
+        "avg_price": 10461707.78,
+        "avg_price_m2": 1764.03
+      },
+      {
+        "name": "Puiseux-Pontoise",
+        "transactions": 3,
+        "avg_price": 10203683.33,
+        "avg_price_m2": 3397.15
+      },
+      {
+        "name": "Chambolle-Musigny",
+        "transactions": 10,
+        "avg_price": 9619000.0,
+        "avg_price_m2": 0
+      }
+    ],
+    "top_departments_by_transactions": [
+      {
+        "name": "Nord",
+        "transactions": 24647,
+        "avg_price": 289203.55,
+        "nb_cities": 629
+      },
+      {
+        "name": "Gironde",
+        "transactions": 23045,
+        "avg_price": 529283.81,
+        "nb_cities": 509
+      },
+      {
+        "name": "Loire-Atlantique",
+        "transactions": 21180,
+        "avg_price": 224842.16,
+        "nb_cities": 207
+      },
+      {
+        "name": "Bouches-du-Rhône",
+        "transactions": 18627,
+        "avg_price": 352128.65,
+        "nb_cities": 133
+      },
+      {
+        "name": "Hérault",
+        "transactions": 18427,
+        "avg_price": 243903.96,
+        "nb_cities": 327
+      },
+      {
+        "name": "Paris",
+        "transactions": 18109,
+        "avg_price": 730115.29,
+        "nb_cities": 20
+      },
+      {
+        "name": "Alpes-Maritimes",
+        "transactions": 17693,
+        "avg_price": 435631.44,
+        "nb_cities": 151
+      },
+      {
+        "name": "Charente-Maritime",
+        "transactions": 17354,
+        "avg_price": 192198.59,
+        "nb_cities": 454
+      },
+      {
+        "name": "Finistère",
+        "transactions": 17353,
+        "avg_price": 164405.73,
+        "nb_cities": 274
+      },
+      {
+        "name": "Haute-Garonne",
+        "transactions": 17056,
+        "avg_price": 228554.1,
+        "nb_cities": 517
+      }
+    ]
+  }
+}

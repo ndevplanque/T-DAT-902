@@ -25,7 +25,7 @@ def build_word_cloud(frequencies):
         raise ValueError("Données invalides.")
 
     # Générer le nuage de mots
-    return WordCloud(width=300, height=200, background_color="white").generate_from_frequencies(frequencies)
+    return WordCloud(width=250, height=200, background_color="white").generate_from_frequencies(frequencies)
 
 
 def to_png(word_cloud):

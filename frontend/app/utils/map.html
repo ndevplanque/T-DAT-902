@@ -23,7 +23,7 @@
             top: 0;
             left: 0;
             height: 100%;
-            width: 300px;
+            width: 250px;
             background: white;
             padding: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
@@ -41,9 +41,10 @@
             border-radius: 5px;
             cursor: pointer;
         }
-         .image-container {
+
+        .image-container {
             position: relative;
-            width: 300px;
+            width: 250px;
             height: 200px;
             display: flex;
             align-items: center;
@@ -75,26 +76,66 @@
             /* opacity: 0; */
             transition: opacity 0.5s ease-in-out;
         }
+
+        .legend-gradient {
+            background: white;
+            padding: 10px;
+            width: 220px;
+            font-size: 12px;
+            color: #333;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            border-radius: 8px;
+            line-height: 1.4;
+        }
+
+        .legend-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .legend-bar {
+            height: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            font-family: monospace;
+        }
+
+
     </style>
 </head>
 <body>
 
-<div id="map" style="width: 100%; height: 800px;">
+<div id="map" style="width: 100%; height: 600px; max-height: 100vh;">
     <div id="info-pane">
         <button id="close-btn"
                 style="float: right; background-color: #FF4400; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer;">
             X
         </button>
         <h3 id="feature-name"></h3>
-        <p id="feature-price"></p>
-        <p id="feature-type"></p>
-        <div class="image-container" id="feature-word-cloud-div">
-            <div class="spinner"></div>
-            <img id="feature-word-cloud-img" src="" alt="" width="300">
+        <p style="display: flex; justify-content: space-between; margin: 0;">
+            <span id="feature-price"></span>
+            <span id="feature-type"></span>
+        </p>
+        <div id="feature-word-cloud-div">
+            <p style="text-align: center; font-weight: bold;">Nuage de mots</p>
+            <div class="image-container">
+                <div class="spinner"></div>
+                <img id="feature-word-cloud-img" src="" alt="" width="250">
+            </div>
         </div>
-        <div class="image-container" id="feature-sentiments-div">
-            <div class="spinner"></div>
-            <img id="feature-sentiments-img" src="" alt="" width="300">
+        <div id="feature-sentiments-div">
+            <p style="text-align: center; font-weight: bold;">Analyse des sentiments</p>
+            <div class="image-container">
+                <div class="spinner"></div>
+                <img id="feature-sentiments-img" src="" alt="" width="250">
+            </div>
         </div>
     </div>
 </div>
@@ -103,12 +144,6 @@
     const API_URL = "http://localhost:5001"
     const INITIAL_ZOOM = 10
     const INITIAL_LOCATION = [48.584614, 7.750713] // Strasbourg
-    const COLORS = [
-        "#006600", "#228822", "#33CC33",
-        "#77FF00", "#AAFF22", "#FFFF00",
-        "#FFDD00", "#FFAA00", "#FF8800",
-        "#FF6600", "#FF4400", "#FF0000",
-    ];
 
     // Instancie la carte Leaflet
     const map = L.map('map', {
@@ -145,6 +180,14 @@
                 satisfactionLayer.clearLayers().addLayer(buildLayer("satisfaction", data));
 
                 map.addLayer(findActiveLayer());
+
+                map._lastGeoDataMin = data.metadata.min_price;
+                map._lastGeoDataMax = data.metadata.max_price;
+
+                // Rafraîchir la légende
+                if (map._legendControl) map.removeControl(map._legendControl);
+                map._legendControl = buildLegend(data.metadata.min_price, data.metadata.max_price);
+                map._legendControl.addTo(map);
             })
             .catch(error => console.error('Erreur de récupération des données GeoJSON :', error));
     }
@@ -210,10 +253,15 @@
                     document.getElementById('feature-sentiments-img').src = '';
                     document.getElementById('feature-name').innerHTML = `${feature.properties.name}`;
                     document.getElementById('feature-type').innerHTML = `Type : ${data.metadata.name.replace(/s$/, '')}`;
-                    document.getElementById('feature-price').innerHTML = `Prix moyen : ${feature.properties.price} €`;
+
+                    if (feature.properties.price == null)
+                        document.getElementById('feature-price').innerHTML = `Prix moyen : Non disponible`;
+                    else
+                        document.getElementById('feature-price').innerHTML = `Prix moyen : ${feature.properties.price.toFixed(2)} €`;
+
                     document.getElementById('info-pane').style.display = 'block';
-                    const zoom = map.getZoom()
-                    if (zoom > 10) {
+
+                    if (map.getZoom() > 10) {
                         document.getElementById('feature-word-cloud-div').style.visibility = "visible";
                         document.getElementById('feature-word-cloud-img').src = `${API_URL}/${feature.properties.word_cloud_url}`;
                         document.getElementById('feature-sentiments-div').style.visibility = "visible";
@@ -233,10 +281,20 @@
     });
 
     function getPriceColor(price, minPrice, maxPrice) {
-        // Calculer un indice basé sur le prix
-        const ratio = (price - minPrice) / (maxPrice - minPrice);
-        const colorIndex = Math.min(Math.floor(ratio * COLORS.length), COLORS.length - 1);
-        return COLORS[colorIndex];
+        if (price == null || isNaN(price)) return "#aaaaaa"; // couleur neutre
+
+        const ratio = Math.max(0, Math.min(1, (price - minPrice) / (maxPrice - minPrice)));
+
+        // Hue: 180 (bleu) → 0 (rouge)
+        const hue = (1 - ratio) * 180;
+
+        // toujours bien saturé
+        const saturation = 100;
+
+        // Démarre plus sombre → plus vif
+        const lightness = 20 + ratio * 40; // de 20% à 60%
+
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     }
 
     function urlGetMapAreas(zoom, bounds) {
@@ -256,6 +314,34 @@
     function isLayerActive(layer) {
         return map.hasLayer(layer);
     }
+
+    function buildLegend(min, max) {
+        const legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'info legend-gradient');
+
+            div.innerHTML = `
+                <div class="legend-title">Prix moyen (€)</div>
+                <div class="legend-bar" style="background: linear-gradient(to right,
+                    hsl(180, 100%, 20%),
+                    hsl(150, 100%, 30%),
+                    hsl(90, 100%, 40%),
+                    hsl(45, 100%, 50%),
+                    hsl(0, 100%, 60%)
+                );"></div>
+                <div class="legend-labels">
+                    <span>${Math.round(min)}</span>
+                    <span>${Math.round((min + max) / 2)}</span>
+                    <span>${Math.round(max)}</span>
+                </div>
+            `;
+            return div;
+        };
+
+        return legend;
+    }
+
 </script>
 </body>
 </html>

@@ -60,63 +60,19 @@ avis-data-validator:
 
 #### Validation de complétude
 
-```python
-# Script validate_data.py
-def validate_ville_completeness(ville):
-    """Valide la complétude des champs obligatoires pour une ville"""
-    required_fields = [
-        "nom", "code_postal", "code_insee", "city_id", 
-        "department_id", "url", "notes", "nombre_avis"
-    ]
-    
-    missing_fields = []
-    for field in required_fields:
-        if field not in ville or ville[field] is None:
-            missing_fields.append(field)
-    
-    return missing_fields
-
-def validate_avis_completeness(avis):
-    """Valide la complétude des champs obligatoires pour un avis"""
-    required_fields = [
-        "ville_id", "city_id", "avis_id", "auteur", 
-        "date", "note_globale", "notes", "description"
-    ]
-    
-    missing_fields = []
-    for field in required_fields:
-        if field not in avis or avis[field] is None:
-            missing_fields.append(field)
-    
-    return missing_fields
-```
+Contrôles de présence des champs obligatoires:
+- **Villes**: Vérification de 8 champs essentiels (nom, codes, identifiants, URL, notes)
+- **Avis**: Validation de 8 champs critiques (identifiants, auteur, date, notes, description)
+- **Détection automatique**: Identification des champs manquants ou null
+- **Reporting détaillé**: Liste précise des champs défaillants par enregistrement
 
 #### Validation de cohérence
 
-```python
-def validate_notes_consistency():
-    """Vérifie la cohérence entre notes calculées et stockées"""
-    
-    inconsistent_villes = []
-    
-    for ville in db.villes.find():
-        if "notes" in ville:
-            # Recalcul de la moyenne depuis les notes détaillées
-            calculated_avg = sum(ville["notes"].values()) / len(ville["notes"])
-            stored_avg = ville["notes"].get("moyenne", 0)
-            
-            # Seuil de tolérance pour écart
-            if abs(calculated_avg - stored_avg) > 0.5:
-                inconsistent_villes.append({
-                    "city_id": ville["city_id"],
-                    "nom": ville["nom"],
-                    "calculated": calculated_avg,
-                    "stored": stored_avg,
-                    "difference": abs(calculated_avg - stored_avg)
-                })
-    
-    return inconsistent_villes
-```
+Vérification de la logique métier et calculs:
+- **Recalcul automatique**: Comparaison entre moyennes calculées et stockées
+- **Seuil de tolérance**: Détection d'écarts > 0.5 point sur les notes
+- **Validation croisée**: Cohérence entre notes détaillées et moyennes globales
+- **Identification précise**: Localisation des villes avec incohérences de calcul
 
 ### Métriques générées
 
@@ -133,26 +89,11 @@ def validate_notes_consistency():
 
 ### Sorties de validation
 
-**validation_results.json**:
-```json
-{
-  "summary": {
-    "total_villes": 34455,
-    "total_avis": 54656,
-    "villes_sans_avis": 28978,
-    "moyenne_avis_par_ville": 1.59
-  },
-  "issues": {
-    "avis_orphelins": 0,
-    "villes_notes_incoherentes": 0,
-    "villes_champs_manquants": []
-  },
-  "top_10_villes_avis": [
-    {"nom": "Avis Boulogne-Billancourt 92100", "nb_avis": 47},
-    {"nom": "Avis Issy-les-Moulineaux 92130", "nb_avis": 44}
-  ]
-}
-```
+**validation_results.json**: Rapport JSON structuré contenant:
+- **Statistiques globales**: Totaux villes, avis, moyennes par ville
+- **Détection d'anomalies**: Avis orphelins, notes incohérentes, champs manquants
+- **Classements**: Top 10 des villes par volume d'avis
+- **Métriques qualité**: Indicateurs de complétude et cohérence
 
 ## Avis Processor Validator
 
@@ -186,53 +127,19 @@ avis-processor-validator:
 
 #### Validation du traitement Spark
 
-```python
-def verify_spark_processing():
-    """Vérifie que toutes les villes ont été traitées par Spark"""
-    
-    total_villes = db.villes.count_documents({})
-    villes_traitees = db.villes.count_documents({"status": "traité"})
-    
-    processing_stats = {
-        "total_villes": total_villes,
-        "villes_traitees": villes_traitees,
-        "pourcentage_traite": (villes_traitees / total_villes) * 100,
-        "villes_en_echec": total_villes - villes_traitees
-    }
-    
-    return processing_stats
-```
+Contrôle de l'exécution complète du pipeline Spark:
+- **Comptage exhaustif**: Vérification du traitement de toutes les villes
+- **Statut de traitement**: Validation du marquage "traité" pour chaque ville
+- **Calcul de couverture**: Pourcentage de villes traitées avec succès
+- **Détection d'échecs**: Identification des villes non traitées
 
 #### Validation des sentiments
 
-```python
-def validate_sentiment_analysis():
-    """Valide la cohérence de l'analyse de sentiment"""
-    
-    sentiment_stats = []
-    
-    for ville in db.villes.find():
-        if "sentiments" in ville:
-            sentiments = ville["sentiments"]
-            
-            # Vérification que les pourcentages sont cohérents
-            total_percent = (
-                sentiments.get("positif_percent", 0) +
-                sentiments.get("neutre_percent", 0) +
-                sentiments.get("negatif_percent", 0)
-            )
-            
-            if abs(total_percent - 100) > 0.1:  # Tolérance 0.1%
-                print(f"⚠️  Incohérence sentiment pour {ville['nom']}: {total_percent}%")
-            
-            sentiment_stats.append({
-                "positif": sentiments.get("positif_percent", 0),
-                "neutre": sentiments.get("neutre_percent", 0),
-                "negatif": sentiments.get("negatif_percent", 0)
-            })
-    
-    return sentiment_stats
-```
+Contrôle de la qualité de l'analyse de sentiment:
+- **Validation mathématique**: Vérification que positif + neutre + négatif = 100%
+- **Seuil de tolérance**: Détection d'écarts > 0.1% dans les pourcentages
+- **Collecte statistique**: Agrégation des distributions de sentiment par ville
+- **Alertes automatiques**: Signalement des incohérences détectées
 
 ### Métriques générées
 
@@ -290,85 +197,21 @@ data-aggregator-validator:
 
 #### 1. Validation agrégations MongoDB (aggregation_validator.py)
 
-```python
-def validate_department_aggregations():
-    """Valide la cohérence des agrégations départementales"""
-    
-    validation_errors = []
-    
-    for dept in db.departements_stats.find():
-        # Vérification des totaux
-        villes_dept = list(db.villes.find({"department_id": dept["_id"]}))
-        
-        expected_villes = len(villes_dept)
-        expected_avis = sum(v.get("nombre_avis", 0) for v in villes_dept)
-        
-        # Validation comptage villes
-        if dept["nombre_villes"] != expected_villes:
-            validation_errors.append({
-                "department": dept["_id"],
-                "error": "nombre_villes_incoherent",
-                "expected": expected_villes,
-                "actual": dept["nombre_villes"]
-            })
-        
-        # Validation comptage avis
-        if abs(dept["nombre_avis"] - expected_avis) > 1:
-            validation_errors.append({
-                "department": dept["_id"],
-                "error": "nombre_avis_incoherent",
-                "expected": expected_avis,
-                "actual": dept["nombre_avis"]
-            })
-        
-        # Validation des notes (échelle 0-10)
-        for note_key, note_value in dept["notes"].items():
-            if not (0 <= note_value <= 10):
-                validation_errors.append({
-                    "department": dept["_id"],
-                    "error": f"note_{note_key}_invalide",
-                    "value": note_value
-                })
-    
-    return validation_errors
-```
+Contrôle de cohérence des agrégations départementales:
+- **Recalcul automatique**: Vérification des totaux villes et avis par département
+- **Validation des compteurs**: Comparaison entre agrégations et sources
+- **Contrôle d'échelle**: Validation des notes sur l'échelle 0-10
+- **Détection d'erreurs**: Identification précise des incohérences avec contexte
+- **Seuils de tolérance**: Écart maximal de 1 avis accepté
 
 #### 2. Validation propriétés PostgreSQL (properties_aggregation_validator.py)
 
-```python
-def validate_price_consistency():
-    """Valide la cohérence des prix immobiliers"""
-    
-    # Validation prix positifs
-    cursor.execute("""
-        SELECT COUNT(*) FROM properties_cities_stats 
-        WHERE prix_moyen <= 0
-    """)
-    negative_prices = cursor.fetchone()[0]
-    
-    # Validation prix réalistes (>50k€)
-    cursor.execute("""
-        SELECT COUNT(*) FROM properties_cities_stats 
-        WHERE prix_moyen > 50000
-    """)
-    realistic_prices = cursor.fetchone()[0]
-    
-    # Détection outliers
-    cursor.execute("""
-        SELECT city_name, prix_moyen 
-        FROM properties_cities_stats 
-        WHERE prix_moyen > 2000000 OR prix_moyen < 10000
-        ORDER BY prix_moyen DESC
-    """)
-    outliers = cursor.fetchall()
-    
-    return {
-        "negative_prices": negative_prices,
-        "realistic_prices": realistic_prices,
-        "total_cities": 30860,
-        "outliers": outliers
-    }
-```
+Contrôle de qualité des données immobilières:
+- **Validation logique**: Détection des prix négatifs ou nuls
+- **Seuils de réalisme**: Identification des prix < 10k€ ou > 2M€
+- **Analyse de distribution**: Contrôle des prix > 50k€ (seuil de cohérence)
+- **Détection d'outliers**: Identification automatique des valeurs aberrantes
+- **Métriques de qualité**: Calcul de pourcentages de données valides
 
 ### Métriques générées
 
@@ -409,55 +252,21 @@ def validate_price_consistency():
 
 ### Script d'orchestration
 
-```bash
-#!/bin/bash
-# run_all_validations.sh
-
-echo "=== VALIDATION COMPLÈTE DU PIPELINE HOMEPEDIA ==="
-
-# 1. Validation des données scrapées
-echo "1. Validation des données d'avis..."
-python aggregation_validator.py
-
-# 2. Validation des propriétés immobilières
-echo "2. Validation des données immobilières..."
-python properties_aggregation_validator.py
-
-# 3. Génération du rapport consolidé
-echo "3. Génération du rapport final..."
-python generate_final_report.py
-
-echo "✅ Validation complète terminée"
-echo "📊 Rapports disponibles dans /app/results/"
-```
+Script maître de validation complète du pipeline:
+1. **Validation séquentielle**: Exécution ordonnée des validations d'avis et immobilières
+2. **Consolidation**: Génération d'un rapport final unifié
+3. **Logging intégré**: Messages de progression et statuts
+4. **Centralisation**: Collecte de tous les rapports dans un répertoire unique
+5. **Vérification finale**: Confirmation de succès avec liens vers résultats
 
 ### Intégration avec le monitoring
 
-```python
-def generate_quality_metrics():
-    """Génère les métriques de qualité pour monitoring"""
-    
-    quality_metrics = {
-        "timestamp": datetime.now().isoformat(),
-        "data_sources": {
-            "villes_scrapees": 34455,
-            "avis_collectes": 54656,
-            "transactions_immobilieres": 1500000
-        },
-        "quality_scores": {
-            "completeness_score": 98.5,  # % champs non-null
-            "consistency_score": 100.0,  # % cohérence inter-niveaux
-            "accuracy_score": 96.8       # % données dans ranges attendus
-        },
-        "anomalies_detected": {
-            "prix_aberrants": 127,
-            "sentiments_incoherents": 0,
-            "avis_orphelins": 0
-        }
-    }
-    
-    return quality_metrics
-```
+Génération de métriques pour surveillance continue:
+- **Horodatage**: Timestamp précis pour historisation
+- **Compteurs sources**: Volumes de données collectées par source
+- **Scores de qualité**: Indicateurs quantifiés (complétude, cohérence, précision)
+- **Détection d'anomalies**: Comptage des problèmes par catégorie
+- **Format JSON**: Structure standardisée pour intégration monitoring
 
 ## Points forts du système
 

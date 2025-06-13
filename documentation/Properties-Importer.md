@@ -107,241 +107,112 @@ surface_terrain          # Surface terrain (m²)
 
 ### Configuration Spark optimisée
 
-```python
-# Script csv_treatment.py
-spark = SparkSession.builder \
-    .appName("Property_Import") \
-    .master("spark://spark-master:7077") \
-    .config("spark.jars", "/app/jars/postgresql-42.7.4.jar") \
-    .config("spark.driver.memory", "3g") \
-    .config("spark.executor.memory", "6g") \
-    .config("spark.driver.maxResultSize", "2g") \
-    .config("spark.sql.shuffle.partitions", "4") \
-    .config("spark.default.parallelism", "1") \
-    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer") \
-    .config("spark.executor.extraJavaOptions", "-XX:+UseG1GC") \
-    .getOrCreate()
-```
+Configuration haute performance pour traitement des données DVF:
+- Allocation mémoire: 3GB driver, 6GB executor
+- Sérialisation Kryo pour performance binaire
+- Garbage collector G1GC optimisé pour gros datasets
+- 4 partitions de shuffle, parallélisme limité à 1
+- Driver JDBC PostgreSQL chargé automatiquement
 
 ### Lecture et validation des données
 
-```python
-def load_and_validate_csv(file_path):
-    """Charge et valide le fichier CSV DVF avec gestion des erreurs"""
-    
-    # Lecture avec gestion des caractères spéciaux
-    df = spark.read \
-        .option("header", "true") \
-        .option("inferSchema", "true") \
-        .option("multiline", "true") \
-        .option("escape", '"') \
-        .option("encoding", "UTF-8") \
-        .csv(file_path)
-    
-    # Filtrage des données valides obligatoires
-    df_clean = df.filter(
-        col("latitude").isNotNull() & 
-        col("longitude").isNotNull() &
-        col("id_mutation").isNotNull() &
-        col("id_parcelle").isNotNull() &
-        col("latitude").between(-90, 90) &      # Validation latitude
-        col("longitude").between(-180, 180)    # Validation longitude
-    )
-    
-    return df_clean
-```
+Processus de chargement et nettoyage du fichier CSV DVF:
+- Lecture avec gestion des caractères spéciaux et multilignes
+- Inférence automatique du schéma
+- Filtrage des données essentielles (coordonnées GPS, identifiants)
+- Validation des plages de coordonnées GPS (-90/90 latitude, -180/180 longitude)
+- Élimination des enregistrements avec valeurs nulles critiques
 
 ### Transformation et typage
 
-```python
-def transform_data_types(df):
-    """Applique les types de données appropriés"""
-    
-    df_transformed = df.select(
-        col("id_mutation").cast(StringType()),
-        col("date_mutation").cast(DateType()),
-        col("valeur_fonciere").cast(DoubleType()),
-        col("code_postal").cast(StringType()),
-        col("code_commune").cast(StringType()),
-        col("nom_commune").cast(StringType()),
-        col("id_parcelle").cast(StringType()),
-        col("surface_reelle_bati").cast(DoubleType()),
-        col("surface_terrain").cast(DoubleType()),
-        col("latitude").cast(DoubleType()),
-        col("longitude").cast(DoubleType()),
-        col("nature_mutation").cast(StringType())
-    )
-    
-    # Optimisation des partitions pour 2 workers
-    return df_transformed.repartition(2)
-```
+Standardisation des types de données pour cohérence:
+- Cast explicite des identifiants en String
+- Conversion des dates au format DateType
+- Conversion des valeurs numériques (prix, surfaces, coordonnées) en DoubleType
+- Repartitioning en 2 partitions pour optimiser la distribution sur les workers
+- Préparation des données pour l'insertion PostgreSQL
 
 ## Intégration PostgreSQL/PostGIS
 
 ### Schéma de table principal
 
-```sql
-CREATE TABLE IF NOT EXISTS properties (
-    id_mutation TEXT NOT NULL,                    -- Clé primaire composite
-    id_parcelle TEXT NOT NULL,                    -- Clé primaire composite
-    date_mutation DATE,
-    valeur_fonciere DOUBLE PRECISION,
-    code_postal TEXT,
-    code_commune TEXT,
-    nom_commune TEXT,
-    surface_reelle_bati DOUBLE PRECISION,
-    surface_terrain DOUBLE PRECISION,
-    nature_mutation TEXT,
-    geom geometry(Point, 4326),                   -- Géométrie PostGIS
-    
-    PRIMARY KEY (id_mutation, id_parcelle)        -- Prévient les doublons
-);
-```
+Structure de table PostgreSQL optimisée pour les données DVF:
+- **Clé primaire composite** (id_mutation, id_parcelle) pour prévenir les doublons
+- **Colonnes de transaction**: date, valeur foncière, nature de mutation
+- **Localisation administrative**: codes commune/postal, noms
+- **Surfaces**: bâtie et terrain en double précision
+- **Géométrie PostGIS**: Point en WGS84 (SRID 4326)
 
 ### Index pour performance
 
-```sql
--- Index spatial pour requêtes géographiques
-CREATE INDEX idx_properties_geom ON properties USING GIST (geom);
-
--- Index sur colonnes fréquemment requêtées
-CREATE INDEX idx_properties_code_commune ON properties(code_commune);
-CREATE INDEX idx_properties_date_mutation ON properties(date_mutation);
-CREATE INDEX idx_properties_valeur_fonciere ON properties(valeur_fonciere);
-```
+Optimisations de requête avec index stratégiques:
+- **Index spatial GIST** sur géométrie pour requêtes géographiques
+- **Index B-tree** sur code commune pour jointures fréquentes
+- **Index sur date** pour filtres temporels
+- **Index sur valeur foncière** pour requêtes de prix
 
 ### Import en deux phases
 
 #### Phase 1: Table temporaire via Spark JDBC
 
-```python
-def write_to_temp_table(df):
-    """Écrit les données dans une table temporaire via JDBC"""
-    
-    postgres_properties = {
-        "user": POSTGRES_USER,
-        "password": POSTGRES_PASSWORD,
-        "driver": "org.postgresql.Driver",
-        "batchsize": "10000",                     # Optimisation batch
-        "isolationLevel": "READ_COMMITTED"
-    }
-    
-    df.write \
-        .jdbc(jdbc_url, "temp_properties_import", 
-              mode="overwrite", properties=postgres_properties)
-```
+Écriture optimisée des données brutes:
+- Connexion JDBC avec batch de 10,000 enregistrements
+- Isolation READ_COMMITTED pour éviter les verrous
+- Mode overwrite pour table temporaire
+- Transfert direct depuis Spark vers PostgreSQL
 
 #### Phase 2: Transformation PostGIS + déduplication
 
-```sql
--- Création des géométries et déduplication
-INSERT INTO properties (
-    id_mutation, date_mutation, valeur_fonciere, code_postal,
-    code_commune, nom_commune, id_parcelle, surface_reelle_bati,
-    surface_terrain, nature_mutation, geom
-)
-SELECT DISTINCT
-    id_mutation, date_mutation, valeur_fonciere, code_postal,
-    code_commune, nom_commune, id_parcelle, surface_reelle_bati,
-    surface_terrain, nature_mutation,
-    ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as geom
-FROM temp_properties_import
-WHERE latitude IS NOT NULL 
-  AND longitude IS NOT NULL
-  AND latitude BETWEEN -90 AND 90
-  AND longitude BETWEEN -180 AND 180
-ON CONFLICT (id_mutation, id_parcelle) DO NOTHING;
-```
+Traitement final avec capacités géospatiales:
+- Création de géométries Point à partir des coordonnées GPS
+- Application du système de référence WGS84 (SRID 4326)
+- Déduplication automatique via ON CONFLICT DO NOTHING
+- Validation finale des coordonnées et insertion sélective
 
 ## Scripts et orchestration
 
 ### Script principal (csv_treatment.py)
 
-```python
-def main():
-    """Point d'entrée principal du traitement"""
-    
-    # 1. Initialisation Spark
-    spark = create_spark_session()
-    
-    # 2. Chargement et validation
-    df = load_and_validate_csv(CSV_DVF_PATH)
-    
-    # 3. Transformation
-    df_transformed = transform_data_types(df)
-    
-    # 4. Écriture temporaire
-    write_to_temp_table(df_transformed)
-    
-    # 5. Traitement PostGIS final
-    execute_postgis_processing()
-    
-    # 6. Nettoyage
-    cleanup_temp_tables()
-```
+Orchestration complète du pipeline de traitement:
+1. **Initialisation** de la session Spark avec configuration optimisée
+2. **Chargement** et validation du fichier CSV DVF
+3. **Transformation** des types de données et nettoyage
+4. **Écriture** dans table temporaire PostgreSQL
+5. **Traitement PostGIS** final avec création des géométries
+6. **Nettoyage** des ressources temporaires
 
 ### Script de soumission Spark
 
-```bash
-#!/bin/bash
-# spark-submit.sh
-
-echo "Soumission du job Spark pour import des propriétés..."
-
-spark-submit \
-    --master spark://spark-master:7077 \
-    --deploy-mode client \
-    --driver-memory 3g \
-    --executor-memory 6g \
-    --total-executor-cores 6 \
-    --jars /app/jars/postgresql-42.7.4.jar \
-    /app/csv_treatment.py
-
-echo "Job Spark terminé"
-```
+Lancement du job avec paramètres optimisés:
+- Déploiement en mode client sur cluster Spark
+- Allocation mémoire: 3GB driver, 6GB executor
+- Utilisation de 6 cores au total
+- Chargement automatique du JAR PostgreSQL
 
 ### Attente des dépendances
 
-```bash
-#!/bin/bash
-# wait-for-postgres.sh
-
-echo "Attente de PostgreSQL..."
-until pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER; do
-    echo "PostgreSQL non disponible - attente..."
-    sleep 2
-done
-echo "PostgreSQL prêt!"
-```
+Script de synchronisation avec retry automatique:
+- Vérification de disponibilité PostgreSQL via pg_isready
+- Attente active avec intervalles de 2 secondes
+- Garantit la disponibilité avant démarrage du traitement
 
 ## Géolocalisation et jointures spatiales
 
 ### Création des géométries
 
-```sql
--- Conversion coordonnées → géométrie PostGIS
-ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as geom
-```
-
-**Paramètres**:
-- **SRID 4326**: Système de référence WGS84 (GPS standard)
-- **Point geometry**: Type géométrique optimal pour coordonnées ponctuelles
-- **Validation intégrée**: PostGIS valide automatiquement les géométries
+Transformation des coordonnées GPS en géométries PostGIS:
+- **Fonction ST_MakePoint**: Création de points à partir de longitude/latitude
+- **SRID 4326**: Application du système de référence WGS84 (standard GPS)
+- **Validation automatique**: PostGIS contrôle la validité des géométries
+- **Format optimal**: Type Point adapté aux coordonnées ponctuelles
 
 ### Jointures spatiales pour agrégation
 
-```sql
--- Exemple: Propriétés par commune
-SELECT 
-    c.city_id,
-    c.name as commune_name,
-    COUNT(p.*) as nb_transactions,
-    AVG(p.valeur_fonciere) as prix_moyen,
-    ST_Area(c.geom) as superficie_commune
-FROM cities c
-LEFT JOIN properties p ON ST_Within(p.geom, c.geom)
-GROUP BY c.city_id, c.name, c.geom;
-```
+Capacités de requêtes géospatiales avancées:
+- **ST_Within**: Détection des propriétés contenues dans les communes
+- **Agrégation spatiale**: Calcul de statistiques par zone géographique
+- **Métriques combinées**: Nombre de transactions, prix moyens, superficies
+- **Performance optimisée**: Utilisation des index GIST pour rapidité
 
 ## Tables d'agrégation créées
 
@@ -349,23 +220,13 @@ Le service properties-importer alimente les tables d'agrégation suivantes:
 
 ### 1. properties_cities_stats (30,860 villes)
 
-```sql
-CREATE TABLE properties_cities_stats (
-    city_id VARCHAR(10) PRIMARY KEY,
-    city_name TEXT,
-    nb_transactions INTEGER,
-    prix_moyen DOUBLE PRECISION,
-    prix_median DOUBLE PRECISION,
-    prix_min DOUBLE PRECISION,
-    prix_max DOUBLE PRECISION,
-    prix_m2_moyen DOUBLE PRECISION,
-    surface_bati_moyenne DOUBLE PRECISION,
-    surface_terrain_moyenne DOUBLE PRECISION,
-    premiere_transaction DATE,
-    derniere_transaction DATE,
-    densite_transactions_km2 DOUBLE PRECISION
-);
-```
+Table d'agrégation des statistiques immobilières par ville:
+- **Identifiants**: Code INSEE et nom de la commune
+- **Compteurs**: Nombre total de transactions
+- **Statistiques de prix**: Moyenne, médiane, minimum, maximum, prix au m²
+- **Statistiques de surface**: Moyennes pour surfaces bâties et terrain
+- **Temporalité**: Dates de première et dernière transaction
+- **Densité**: Nombre de transactions par km² pour analyse spatiale
 
 ### 2. properties_departments_stats (97 départements)
 

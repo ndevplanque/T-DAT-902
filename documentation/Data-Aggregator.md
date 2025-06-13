@@ -78,78 +78,35 @@ Le data-aggregator s'exécute en dernier dans la chaîne, nécessitant:
 
 ### Pipeline d'agrégation départementale
 
-```javascript
-// Script aggregation.py - Logique MongoDB
-db.villes.aggregate([
-    {
-        $group: {
-            _id: "$department_id",
-            nombre_villes: { $sum: 1 },
-            nombre_avis: { $sum: "$nombre_avis" },
-            
-            // Moyennes pondérées par nombre d'avis
-            moyenne_globale: {
-                $sum: { $multiply: ["$notes.moyenne", "$nombre_avis"] }
-            },
-            poids_total: { $sum: "$nombre_avis" },
-            
-            // Agrégation des sentiments
-            sentiments_positifs: { $sum: "$sentiments.positif" },
-            sentiments_neutres: { $sum: "$sentiments.neutre" },
-            sentiments_negatifs: { $sum: "$sentiments.negatif" }
-        }
-    },
-    {
-        $project: {
-            _id: 1,
-            nombre_villes: 1,
-            nombre_avis: 1,
-            moyenne_globale: {
-                $divide: ["$moyenne_globale", "$poids_total"]
-            },
-            sentiments: {
-                positif: "$sentiments_positifs",
-                neutre: "$sentiments_neutres", 
-                negatif: "$sentiments_negatifs",
-                positif_percent: {
-                    $multiply: [
-                        { $divide: ["$sentiments_positifs", "$nombre_avis"] },
-                        100
-                    ]
-                }
-            }
-        }
-    }
-])
-```
+Ce pipeline d'agrégation MongoDB regroupe les données de la collection `villes` par département. Pour chaque département, il calcule :
+
+- Le nombre total de villes.
+- Le nombre total d'avis.
+- La moyenne globale des notes, pondérée par le nombre d'avis de chaque ville.
+- Le total des avis positifs, neutres et négatifs.
+
+Ensuite, il projette pour chaque département :
+
+- L’identifiant du département.
+- Le nombre de villes et d’avis.
+- La moyenne globale calculée.
+- Un objet `sentiments` contenant :
+  - Le nombre d’avis positifs, neutres et négatifs.
+  - Le pourcentage d’avis positifs par rapport au total d’avis.
 
 ### Agrégation des mots-clés
 
-```python
-def aggregate_words_by_department(department_id, villes_in_dept):
-    """Agrège les mots-clés par département avec pondération"""
-    
-    word_aggregation = {}
-    
-    for ville in villes_in_dept:
-        mots_ville = db.mots_villes.find_one({"city_id": ville["_id"]})
-        
-        if mots_ville and "mots" in mots_ville:
-            for mot_info in mots_ville["mots"][:50]:  # Top 50 par ville
-                mot = mot_info["mot"]
-                poids = mot_info["poids"]
-                
-                if mot in word_aggregation:
-                    word_aggregation[mot] += poids
-                else:
-                    word_aggregation[mot] = poids
-    
-    # Tri et limitation aux top 50 départementaux
-    top_words = sorted(word_aggregation.items(), 
-                      key=lambda x: x[1], reverse=True)[:50]
-    
-    return [{"mot": mot, "poids": poids} for mot, poids in top_words]
-```
+La fonction décrite agrège les mots-clés par département avec un système de pondération. Voici son fonctionnement :
+
+1. Elle prend en entrée l'identifiant d'un département et la liste des villes appartenant à ce département.
+2. Pour chaque ville, elle récupère ses mots-clés depuis la collection MongoDB `mots_villes`.
+3. Elle traite uniquement les 50 mots les plus importants par ville.
+4. Elle accumule le poids de chaque mot au niveau départemental, additionnant les occurrences à travers toutes les villes.
+5. Si un mot apparaît dans plusieurs villes, son poids total augmente proportionnellement.
+6. Finalement, elle trie tous les mots par poids décroissant et conserve uniquement les 50 mots les plus significatifs du département.
+7. Le résultat est une liste formatée où chaque entrée contient un mot et son poids agrégé.
+
+Ce processus permet d'identifier les termes les plus représentatifs pour chaque département, reflétant les caractéristiques et thèmes récurrents mentionnés dans les avis des villes composant ce département.
 
 ## Processus d'agrégation PostgreSQL
 
@@ -157,76 +114,37 @@ def aggregate_words_by_department(department_id, villes_in_dept):
 
 #### Niveau département
 
-```sql
--- Script create_properties_aggregations_tables.sql
-INSERT INTO properties_departments_stats 
-SELECT 
-    d.department_id,
-    d.name as department_name,
-    d.region_id,
-    
-    -- Statistiques de base
-    SUM(pcs.nb_transactions) as nb_transactions,
-    COUNT(pcs.city_id) as nb_cities_with_data,
-    
-    -- Prix moyens pondérés par nombre de transactions
-    SUM(pcs.prix_moyen * pcs.nb_transactions) / 
-        NULLIF(SUM(pcs.nb_transactions), 0) as prix_moyen,
-    
-    -- Médiane départementale
-    percentile_cont(0.5) WITHIN GROUP (
-        ORDER BY pcs.prix_median
-    ) as prix_median,
-    
-    -- Extremums
-    MIN(pcs.prix_min) as prix_min,
-    MAX(pcs.prix_max) as prix_max,
-    
-    -- Surfaces moyennes pondérées
-    SUM(pcs.surface_bati_moyenne * pcs.nb_transactions_with_surface_bati) / 
-        NULLIF(SUM(pcs.nb_transactions_with_surface_bati), 0) as surface_bati_moyenne,
-    
-    -- Densité (transactions/km²)
-    SUM(pcs.nb_transactions) / ST_Area(ST_Union(c.geom)::geography) * 1000000 as densite_transactions_km2,
-    
-    -- Période d'activité
-    MIN(pcs.premiere_transaction) as premiere_transaction,
-    MAX(pcs.derniere_transaction) as derniere_transaction
+Le code SQL associé à ce niveau effectue une agrégation des données immobilières par département, en produisant un ensemble de statistiques consolidées. Voici une explication simplifiée :  
+Le script insère dans la table properties_departments_stats des statistiques regroupées pour chaque département.
 
-FROM departments d
-LEFT JOIN cities c ON c.department_id = d.department_id  
-LEFT JOIN properties_cities_stats pcs ON pcs.city_id = c.city_id
-WHERE pcs.nb_transactions > 0
-GROUP BY d.department_id, d.name, d.region_id;
-```
+Pour chaque département, il calcule :
+
+- Des informations d'identification (ID, nom, région)
+- Le nombre total de transactions immobilières
+- Le nombre de villes ayant des données dans le département
+- Un prix moyen pondéré par le nombre de transactions
+- Un prix médian départemental
+- Les prix minimum et maximum enregistrés
+- La surface bâtie moyenne pondérée
+- La densité de transactions par km²
+- Les dates de première et dernière transaction
+
+Ces calculs sont réalisés en joignant trois tables :  
+- departments : contient les informations sur les départements
+- cities : contient les informations sur les villes
+- properties_cities_stats : contient les statistiques immobilières par ville
+
+Seuls les départements ayant au moins une transaction sont inclus (clause WHERE).  
+Les résultats sont groupés par département pour obtenir une ligne de statistiques par département.  
+Cette agrégation transforme des données détaillées au niveau des villes en une vue synthétique du marché immobilier à l'échelle départementale.
 
 #### Niveau région
 
-```sql
--- Agrégation région avec validation croisée
-INSERT INTO properties_regions_stats
-SELECT 
-    r.region_id,
-    r.name as region_name,
-    
-    SUM(pds.nb_transactions) as nb_transactions,
-    COUNT(pds.department_id) as nb_departments_with_data,
-    
-    -- Prix moyen régional (pondéré par départements)
-    SUM(pds.prix_moyen * pds.nb_transactions) / 
-        NULLIF(SUM(pds.nb_transactions), 0) as prix_moyen,
-    
-    -- Validation: cohérence avec somme directe des villes
-    (SELECT SUM(prix_moyen * nb_transactions) / SUM(nb_transactions)
-     FROM properties_cities_stats pcs
-     JOIN cities c ON c.city_id = pcs.city_id  
-     WHERE c.region_id = r.region_id) as prix_moyen_validation
+Ce code SQL effectue une agrégation des statistiques immobilières au niveau régional en calculant le prix moyen pondéré et
+le nombre de transactions par région, tout en incluant une validation croisée pour vérifier la cohérence des calculs
+par rapport aux données sources des villes.
 
-FROM regions r
-LEFT JOIN properties_departments_stats pds ON pds.region_id = r.region_id
-WHERE pds.nb_transactions > 0  
-GROUP BY r.region_id, r.name;
-```
+Ce code génère à peu près les mêmes données que le niveau départemental, mais au niveau régional.
 
 ## Schémas des données agrégées
 
@@ -365,67 +283,18 @@ CREATE TABLE properties_cities_stats (
 
 #### 1. Validation MongoDB (aggregation_validator.py)
 
-```python
-def validate_department_aggregations():
-    """Valide la cohérence des agrégations départementales"""
-    
-    errors = []
-    
-    for dept in db.departements_stats.find():
-        # Validation des totaux
-        villes_dept = list(db.villes.find({"department_id": dept["_id"]}))
-        expected_cities = len(villes_dept)
-        expected_avis = sum(v.get("nombre_avis", 0) for v in villes_dept)
-        
-        if dept["nombre_villes"] != expected_cities:
-            errors.append(f"Département {dept['_id']}: nombre villes incohérent")
-        
-        if abs(dept["nombre_avis"] - expected_avis) > 1:
-            errors.append(f"Département {dept['_id']}: nombre avis incohérent")
-        
-        # Validation des notes (0-10)
-        for note_key, note_value in dept["notes"].items():
-            if not (0 <= note_value <= 10):
-                errors.append(f"Note {note_key} invalide: {note_value}")
-        
-        # Validation des pourcentages (somme = 100%)
-        total_percent = (dept["sentiments"]["positif_percent"] + 
-                        dept["sentiments"]["neutre_percent"] + 
-                        dept["sentiments"]["negatif_percent"])
-        
-        if abs(total_percent - 100) > 0.1:
-            errors.append(f"Pourcentages sentiments != 100%: {total_percent}")
-    
-    return errors
-```
+Valide la cohérence des agrégations départementales en vérifiant:
+- Correspondance entre le nombre de villes agrégées et les villes sources
+- Cohérence du nombre total d'avis par département
+- Validité des notes sur l'échelle 0-10
+- Cohérence des pourcentages de sentiments (somme = 100%)
 
 #### 2. Validation PostgreSQL (properties_aggregation_validator.py)
 
-```python
-def validate_price_consistency():
-    """Valide la cohérence des prix entre niveaux"""
-    
-    # Validation prix > 50k€ (seuil de cohérence)
-    valid_cities = cursor.execute("""
-        SELECT COUNT(*) FROM properties_cities_stats 
-        WHERE prix_moyen > 50000
-    """).fetchone()[0]
-    
-    print(f"Villes avec prix > 50k€: {valid_cities}/30,860")
-    
-    # Détection prix aberrants
-    outliers = cursor.execute("""
-        SELECT city_name, prix_moyen 
-        FROM properties_cities_stats 
-        WHERE prix_moyen > 2000000 OR prix_moyen < 10000
-        ORDER BY prix_moyen DESC
-    """).fetchall()
-    
-    if outliers:
-        print(f"⚠️  {len(outliers)} prix aberrants détectés")
-        for city, price in outliers[:10]:
-            print(f"  {city}: {price:,.0f}€")
-```
+Contrôle la qualité des données immobilières agrégées:
+- Détection des prix aberrants (< 10k€ ou > 2M€)
+- Validation du seuil de cohérence (prix > 50k€)
+- Vérification de la distribution des prix entre niveaux géographiques
 
 ### Outputs de validation
 

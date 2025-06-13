@@ -47,10 +47,8 @@ def connect_to_mongodb():
             # Créer les index
             villes_collection.create_index([("city_id", 1)], unique=True)
             villes_collection.create_index([("code_insee", 1)])
-            villes_collection.create_index([("nom", 1)])
             villes_collection.create_index([("department_id", 1)])
 
-            avis_collection.create_index([("ville_id", 1)])
             avis_collection.create_index([("city_id", 1)])
             avis_collection.create_index([("avis_id", 1)])
 

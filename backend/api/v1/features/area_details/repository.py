@@ -8,7 +8,7 @@ def get_area_details(entity, id):
 
     details = {}
 
-    with (MongoDB() as db):
+    with MongoDB() as db:
 
         document = db.find_one(
             collection='mots_villes',

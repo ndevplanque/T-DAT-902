@@ -166,6 +166,12 @@ def process_avis(mongo_uri, mongo_db):
         avis_collection = db["avis"]
         mots_collection = db["mots_villes"]
 
+        # Index sur le city_id pour éviter les doublons et optimiser les requetes (très souvent utilisé par l'API)
+        mots_collection.create_index([("city_id", 1)], unique=True)
+        # Index sur statut_traitement pour optimiser le traitement des avis
+        villes_collection.create_index([("statut_traitement", 1)])
+        avis_collection.create_index([("statut_traitement", 1)])
+
         # Récupérer les villes qui n'ont pas encore été traitées
         villes_non_traitees = list(villes_collection.find(
             {"$or": [

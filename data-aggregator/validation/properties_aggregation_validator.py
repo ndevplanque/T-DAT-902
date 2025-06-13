@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Validateur des agrégations de données immobilières
+Vérifie la cohérence et la qualité des statistiques calculées par département et région
+"""
+
 import psycopg2
 import json
 import os
@@ -8,15 +13,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
 import time
-
-# Configuration du logging
 logger = logging.getLogger()
 
 def setup_logging():
-    """Configure le logging avec les handlers appropriés"""
+    """Configure le système de logging pour la validation"""
     output_dir = os.environ.get('OUTPUT_DIR', 'results')
 
-    # Si le répertoire n'existe pas, créons-le
+    # Création du répertoire de sortie si nécessaire
     if not os.path.exists(output_dir):
         try:
             os.makedirs(output_dir)
@@ -25,7 +28,7 @@ def setup_logging():
             output_dir = "/tmp"
             print(f"Utilisation du répertoire temporaire: {output_dir}")
 
-    # Vérifier si on peut écrire dans ce répertoire
+    # Test d'écriture dans le répertoire
     log_file = os.path.join(output_dir, "properties_validation.log")
     try:
         with open(log_file, "a") as f:
@@ -35,7 +38,7 @@ def setup_logging():
         log_file = "/tmp/properties_validation.log"
         print(f"Utilisation du fichier de log: {log_file}")
 
-    # Configurer le logging avec le fichier de log et la console
+    # Configuration du logging vers fichier et console
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -46,7 +49,11 @@ def setup_logging():
     )
 
 def connect_to_postgres():
-    """Connexion à PostgreSQL"""
+    """Établit la connexion à PostgreSQL
+    
+    Returns:
+        psycopg2.connection: Connexion PostgreSQL ou None si échec
+    """
     try:
         conn = psycopg2.connect(
             dbname=os.environ.get('POSTGRES_DB', 'gis_db'),
@@ -62,13 +69,22 @@ def connect_to_postgres():
         return None
 
 def wait_for_aggregations_completion(conn, max_retries=30, retry_interval=10):
-    """Attend que les agrégations soient terminées"""
+    """Attend la finalisation des agrégations immobilières
+    
+    Args:
+        conn: Connexion PostgreSQL
+        max_retries: Nombre maximum de tentatives
+        retry_interval: Intervalle entre les tentatives
+        
+    Returns:
+        bool: True si les agrégations sont prêtes
+    """
     logger.info("Vérification de la disponibilité des agrégations properties...")
     
     for attempt in range(max_retries):
         try:
             with conn.cursor() as cur:
-                # Vérifier que les tables d'agrégation contiennent des données
+                # Vérification de la présence de données dans les tables d'agrégation
                 cur.execute("SELECT COUNT(*) FROM properties_cities_stats")
                 cities_count = cur.fetchone()[0]
                 
@@ -81,7 +97,7 @@ def wait_for_aggregations_completion(conn, max_retries=30, retry_interval=10):
                 if cities_count > 0 and dept_count > 0 and region_count > 0:
                     logger.info(f"Agrégations disponibles: {cities_count} villes, {dept_count} départements, {region_count} régions")
                     
-                    # Vérifier les colonnes des tables pour débugger
+                    # Inspection des colonnes pour validation
                     for table_name in ['properties_cities_stats', 'properties_departments_stats', 'properties_regions_stats']:
                         cur.execute(f"""
                             SELECT column_name 
@@ -107,13 +123,20 @@ def wait_for_aggregations_completion(conn, max_retries=30, retry_interval=10):
     return False
 
 def validate_data_consistency(conn):
-    """Valide la cohérence des données entre les niveaux d'agrégation"""
+    """Valide la cohérence des agrégations entre villes, départements et régions
+    
+    Args:
+        conn: Connexion PostgreSQL
+        
+    Returns:
+        dict: Résultats de validation
+    """
     logger.info("Validation de la cohérence des données")
     validation_results = {}
     
     try:
         with conn.cursor() as cur:
-            # Test 1: Vérifier que les totaux régionaux correspondent aux sommes départementales
+            # Cohérence des totaux entre régions et départements
             cur.execute("""
                 SELECT 
                     r.region_id,
@@ -196,13 +219,20 @@ def validate_data_consistency(conn):
     return validation_results
 
 def generate_statistics_summary(conn):
-    """Génère un résumé statistique des agrégations"""
+    """Génère un résumé statistique des données immobilières agrégées
+    
+    Args:
+        conn: Connexion PostgreSQL
+        
+    Returns:
+        dict: Statistiques par niveau (villes, départements, régions)
+    """
     logger.info("Génération du résumé statistique")
     stats = {}
     
     try:
         with conn.cursor() as cur:
-            # Statistiques générales par niveau
+            # Calcul des statistiques pour chaque niveau d'agrégation
             tables = [
                 ('cities', 'properties_cities_stats', 'nb_transactions'),
                 ('departments', 'properties_departments_stats', 'nb_transactions_total'),
@@ -240,7 +270,7 @@ def generate_statistics_summary(conn):
                                f"transactions moyennes: {result[1]:.1f}")
                 except Exception as e:
                     logger.error(f"Erreur lors du traitement de {level}: {e}")
-                    # Rollback la transaction pour permettre aux requêtes suivantes de fonctionner
+                    # Rollback pour permettre la continuation
                     conn.rollback()
                     stats[level] = {'error': str(e)}
             
@@ -323,11 +353,15 @@ def generate_statistics_summary(conn):
     return stats
 
 def create_visualizations(conn):
-    """Crée des visualisations des données agrégées"""
+    """Génère les graphiques de validation des données immobilières
+    
+    Args:
+        conn: Connexion PostgreSQL
+    """
     logger.info("Création des visualisations")
     output_dir = os.environ.get('OUTPUT_DIR', 'results')
     
-    # S'assurer qu'on commence avec une transaction propre
+    # Nettoyage de la transaction courante
     try:
         conn.rollback()
     except:
@@ -335,7 +369,7 @@ def create_visualizations(conn):
     
     try:
         with conn.cursor() as cur:
-            # Graphique 1: Distribution des prix par région
+            # Graphique des prix moyens par région
             try:
                 cur.execute("""
                     SELECT region_name, prix_moyen, nb_transactions_total
@@ -355,7 +389,7 @@ def create_visualizations(conn):
                     plt.ylabel('Prix Moyen (€)')
                     plt.xticks(range(len(df_regions)), df_regions['Region'], rotation=45, ha='right')
                     
-                    # Colorier les barres selon le nombre de transactions
+                    # Coloration selon le volume de transactions
                     max_transactions = df_regions['Nb_Transactions'].max()
                     for i, bar in enumerate(bars):
                         intensity = df_regions.iloc[i]['Nb_Transactions'] / max_transactions
@@ -591,9 +625,9 @@ def generate_validation_report(validation_results, stats):
         logger.error(f"Erreur lors de la génération du rapport HTML: {e}")
 
 def main():
-    """Fonction principale de validation"""
+    """Fonction principale du validateur d'agrégations immobilières"""
     setup_logging()
-    logger.info("Démarrage de la validation des agrégations properties")
+    logger.info("Démarrage de la validation des agrégations immobilières")
     
     # Connexion à PostgreSQL
     pg_conn = connect_to_postgres()
@@ -602,24 +636,24 @@ def main():
         return
     
     try:
-        # Attendre que les agrégations soient terminées
+        # Attente de la finalisation des agrégations
         if not wait_for_aggregations_completion(pg_conn):
             logger.error("Agrégations non disponibles, arrêt de la validation")
             return
         
-        # Validation de la cohérence des données
+        # Validation de la cohérence entre niveaux
         validation_results = validate_data_consistency(pg_conn)
         
-        # Génération des statistiques
+        # Calcul des statistiques de synthèse
         stats = generate_statistics_summary(pg_conn)
         
-        # Création des visualisations
+        # Génération des graphiques
         create_visualizations(pg_conn)
         
-        # Génération du rapport
+        # Rapport de validation HTML
         generate_validation_report(validation_results, stats)
         
-        # Sauvegarde des résultats en JSON
+        # Export JSON des résultats
         output_dir = os.environ.get('OUTPUT_DIR', 'results')
         results = {
             'timestamp': datetime.now().isoformat(),

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Module d'importation des données immobilières DVF (Demandes de Valeurs Foncières)
+Utilise Apache Spark pour traiter les fichiers CSV volumineux et les importer en PostgreSQL
+"""
 
 import os
 import time
@@ -7,13 +11,12 @@ import socket
 import logging
 import psycopg2
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, when, isnan, isnull
+from pyspark.sql.functions import col
 from pyspark.sql.types import DoubleType, DateType, StringType
 
-# Configuration logging
 logging.basicConfig(level=logging.INFO)
 
-# Variables d'environnement
+# Configuration depuis les variables d'environnement
 POSTGRES_DB = os.getenv('POSTGRES_DB')
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
@@ -28,7 +31,7 @@ CSV_PATH = os.getenv('CSV_DVF_PATH', '/properties/CSV_DVF')
 print("Vérification contenu CSV_PATH dans le conteneur :")
 print(os.listdir(CSV_PATH))
 
-# Attente de Spark Master
+# Attente de la disponibilité de Spark Master
 spark_master_host = "spark-master"
 spark_master_port = 7077
 
@@ -38,12 +41,12 @@ for i in range(30):
         print("Spark Master prêt!")
         break
     except socket.error:
-        print(f"Spark Master pas prêt, tentative {i+1}/30")
+        print(f"Attente Spark Master, tentative {i+1}/30")
         time.sleep(10)
 else:
-    raise Exception("Spark Master n'est pas accessible après plusieurs tentatives.")
+    raise Exception("Impossible de se connecter à Spark Master")
 
-# Configuration Spark optimisée et stable
+# Configuration Spark optimisée pour le traitement des données immobilières
 spark = SparkSession.builder \
     .appName(SPARK_APP_NAME) \
     .master(SPARK_MASTER) \
@@ -73,11 +76,18 @@ print("CSV_PATH =", CSV_PATH)
 print("Contenu du dossier :", os.listdir(CSV_PATH))
 
 def process_csv_with_spark_optimized(file_path):
-    """Traite un fichier CSV avec Spark optimisé pour gros volumes"""
+    """Traite un fichier CSV DVF avec Spark et l'importe en PostgreSQL
+    
+    Args:
+        file_path (str): Chemin vers le fichier CSV à traiter
+        
+    Returns:
+        int: Nombre de lignes insérées
+    """
     print(f"Traitement Spark optimisé du fichier: {file_path}")
     
     try:
-        # Configuration PostgreSQL pour JDBC
+        # Configuration de la connexion PostgreSQL via JDBC
         postgres_properties = {
             "user": POSTGRES_USER,
             "password": POSTGRES_PASSWORD,
@@ -87,7 +97,7 @@ def process_csv_with_spark_optimized(file_path):
         }
         postgres_url = f"jdbc:postgresql://{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
         
-        # Lecture optimisée avec inférence de schéma
+        # Lecture du CSV avec inférence automatique du schéma
         print("Lecture du fichier CSV avec Spark...")
         df = spark.read \
             .option("header", "true") \
@@ -98,7 +108,7 @@ def process_csv_with_spark_optimized(file_path):
         
         print("Fichier CSV lu avec succès")
         
-        # Filtrage et nettoyage AVANT les transformations coûteuses
+        # Filtrage des données valides (latitude, longitude, IDs obligatoires)
         print("Filtrage des données valides...")
         df_clean = df.filter(
             col("latitude").isNotNull() & 
@@ -107,7 +117,7 @@ def process_csv_with_spark_optimized(file_path):
             col("id_parcelle").isNotNull()
         )
         
-        # Sélection des colonnes nécessaires seulement
+        # Sélection et typage des colonnes pour la table properties
         print("Sélection des colonnes...")
         df_selected = df_clean.select(
             col("id_mutation").cast(StringType()),
@@ -123,17 +133,17 @@ def process_csv_with_spark_optimized(file_path):
             col("longitude").cast(DoubleType())
         )
         
-        # Optimisation des partitions AVANT écriture
+        # Repartitionnement pour optimiser l'écriture parallèle
         print("Optimisation des partitions...")
         df_partitioned = df_selected.repartition(2)  # 2 partitions pour 2 workers
         
-        # Écriture directe vers table temporaire avec Spark JDBC
+        # Écriture vers table temporaire via Spark JDBC
         print("Écriture vers PostgreSQL avec Spark JDBC...")
         
-        # Créer table temporaire d'abord
+        # Table temporaire pour l'import en lot
         temp_table = "temp_properties_import"
         
-        # Écriture Spark JDBC directe (sans collect)
+        # Écriture distribuée sans collecte en mémoire
         df_partitioned.write \
             .mode("overwrite") \
             .option("driver", "org.postgresql.Driver") \
@@ -145,7 +155,7 @@ def process_csv_with_spark_optimized(file_path):
         
         print("Données écrites dans table temporaire")
         
-        # Insertion finale avec géométrie via PostgreSQL
+        # Transfert vers table finale avec création des géométries PostGIS
         print("Insertion finale avec géométrie PostGIS...")
         
         conn = psycopg2.connect(
@@ -157,7 +167,7 @@ def process_csv_with_spark_optimized(file_path):
         )
         cursor = conn.cursor()
         
-        # Insertion avec déduplication et géométrie
+        # Insertion finale avec déduplication et création des points géographiques
         insert_sql = f"""
         INSERT INTO properties (
             id_mutation, date_mutation, valeur_fonciere, code_postal,
@@ -180,7 +190,7 @@ def process_csv_with_spark_optimized(file_path):
         
         print(f"{inserted_count} lignes insérées dans properties")
         
-        # Nettoyage
+        # Suppression de la table temporaire
         cursor.execute(f"DROP TABLE IF EXISTS {temp_table};")
         conn.commit()
         
@@ -193,28 +203,26 @@ def process_csv_with_spark_optimized(file_path):
         print(f"Erreur traitement Spark: {e}")
         return 0
 
-# TRAITEMENT PRINCIPAL AVEC SPARK PUR
-print(f"Traitement des fichiers CSV avec Apache Spark PUR (sans pandas/psycopg2)")
+# Traitement principal des fichiers CSV DVF
+print(f"Démarrage du traitement Spark des fichiers DVF")
 
 total_inserted = 0
 
-# Traitement de tous les fichiers CSV du dossier avec Spark
+# Traitement séquentiel de tous les fichiers CSV du répertoire
 for filename in os.listdir(CSV_PATH):
     if filename.endswith('.csv'):
         file_path = os.path.join(CSV_PATH, filename)
         print(f"Traitement Spark PUR du fichier: {filename}")
         
         try:
-            # Traitement avec Spark optimisé
             inserted = process_csv_with_spark_optimized(file_path)
             total_inserted += inserted
                 
         except Exception as e:
-            print(f"Erreur traitement Spark PUR fichier {filename}: {e}")
+            print(f"Erreur lors du traitement de {filename}: {e}")
             continue
 
-print(f"Traitement Spark PUR terminé: {total_inserted} lignes insérées au total")
+print(f"Import terminé: {total_inserted} propriétés importées")
 
-# Fermeture de la session Spark
 spark.stop()
 print("Session Spark fermée")

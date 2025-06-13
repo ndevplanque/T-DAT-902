@@ -1,6 +1,7 @@
 #!/bin/bash
+# Script de soumission Spark pour l'import des données DVF
 
-echo "Lancement du traitement Spark..."
+echo "Soumission du job Spark pour l'import DVF..."
 spark-submit \
   --master spark://spark-master:7077 \
   --deploy-mode client \

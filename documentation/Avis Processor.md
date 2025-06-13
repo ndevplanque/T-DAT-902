@@ -67,49 +67,9 @@ avis-processor/
 
 ### Intégration avec Docker Compose
 
-Le service s'intègre au projet global via docker-compose.yml:
-
-```yaml
-# Service pour exécuter le traitement des avis
-avis-processor-submitter:
-  build:
-    context: ./avis-processor
-    dockerfile: Dockerfile
-  container_name: avis-processor-submitter
-  restart: on-failure
-  environment:
-    - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
-    - MONGO_DB=villes_france
-    - WAIT_FOR_SCRAPER=${ENABLE_SCRAPER:-true}
-  depends_on:
-    - mongodb
-    - avis-scraper
-  volumes:
-    - ./avis-processor:/app
-    - ./logs:/app/logs
-  networks:
-    - t-dat-902-network
-
-# Service de validation des données traitées
-avis-processor-validator:
-  build:
-    context: ./avis-processor/validation
-    dockerfile: Dockerfile
-  container_name: avis-processor-validator
-  volumes:
-    - ./avis-processor/validation:/app
-    - ./logs:/app/logs
-    - ./avis-processor/validation/results:/app/results
-  environment:
-    - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/
-    - MONGO_DB=villes_france
-    - OUTPUT_DIR=/app/results
-  networks:
-    - t-dat-902-network
-  depends_on:
-    - mongodb
-    - avis-processor-submitter
-```
+Le service s'intègre au projet global via docker-compose.yml. Deux containers sont définis,
+l'un pour le traitement des avis "avis-processor-submitter" et l'autre pour la validation des
+résultats, "avis-processor-validator".
 
 ## Workflow d'exécution
 

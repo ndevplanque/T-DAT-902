@@ -3,7 +3,6 @@ from v1.database.mongodb import MongoDB
 
 def get_word_frequencies(entity, id):
     """Retourne un nuage de mots pour une entité donnée"""
-
     if entity != 'cities':
         raise AttributeError("Les nuages de mots ne sont disponibles que pour les 'cities'")
 

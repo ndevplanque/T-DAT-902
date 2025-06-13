@@ -109,6 +109,28 @@ def parse_query_result(query):
         if area_average_price is not None and (aggs_max_price is None or area_average_price > aggs_max_price):
             aggs_max_price = area_average_price
 
+        id_graphs = id
+
+        # Liste des arrondissements de Paris
+        arrondissements_paris = [
+            75101, 75102, 75103, 75104, 75105, 75106, 75107, 75108, 75109, 75110,
+            75111, 75112, 75113, 75114, 75115, 75116, 75117, 75118, 75119, 75120
+        ]
+
+        # Si l'ID correspond à un arrondissement parisien, le regrouper sous le code INSEE Paris
+        if entity == 'cities' and int(id) in arrondissements_paris:
+            id_graphs = 75056
+
+        # Liste des arrondissements de Marseille
+        arrondissements_marseille = [
+            13201, 13202, 13203, 13204, 13205, 13206, 13207, 13208,
+            13209, 13210, 13211, 13212, 13213, 13214, 13215, 13216
+        ]
+
+        # Si l'ID correspond à un arrondissement marseillais, le regrouper sous le code INSEE Paris
+        if entity == 'cities' and int(id) in arrondissements_marseille:
+            id_graphs = 13055
+
         features.append({
             "type": "Feature",
             "properties": {
@@ -117,8 +139,8 @@ def parse_query_result(query):
                 "price": area_average_price,
                 "max_price": area_max_price,
                 "min_price": area_min_price,
-                "word_cloud_url": f"api/v1/word-clouds/{entity}/{id}",
-                "sentiments_url": f"api/v1/sentiments/{entity}/{id}",
+                "word_cloud_url": f"api/v1/word-clouds/{entity}/{id_graphs}",
+                "sentiments_url": f"api/v1/sentiments/{entity}/{id_graphs}",
             },
             "geometry": json.loads(geo_json)
         })

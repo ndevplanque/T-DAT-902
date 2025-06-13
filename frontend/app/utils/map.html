@@ -81,15 +81,18 @@
 
 <div id="map" style="width: 100%; height: 800px;">
     <div id="info-pane">
-        <button id="close-btn" style="float: right; background-color: #FF4400; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer;">X</button>
+        <button id="close-btn"
+                style="float: right; background-color: #FF4400; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer;">
+            X
+        </button>
         <h3 id="feature-name"></h3>
         <p id="feature-price"></p>
         <p id="feature-type"></p>
-        <div class="image-container">
+        <div class="image-container" id="feature-word-cloud-div">
             <div class="spinner"></div>
             <img id="feature-word-cloud-img" src="" alt="" width="300">
         </div>
-        <div class="image-container">
+        <div class="image-container" id="feature-sentiments-div">
             <div class="spinner"></div>
             <img id="feature-sentiments-img" src="" alt="" width="300">
         </div>
@@ -209,8 +212,16 @@
                     document.getElementById('feature-type').innerHTML = `Type : ${data.metadata.name.replace(/s$/, '')}`;
                     document.getElementById('feature-price').innerHTML = `Prix moyen : ${feature.properties.price} €`;
                     document.getElementById('info-pane').style.display = 'block';
-                    document.getElementById('feature-word-cloud-img').src = `${API_URL}/${feature.properties.word_cloud_url}`;
-                    document.getElementById('feature-sentiments-img').src = `${API_URL}/${feature.properties.sentiments_url}`;
+                    const zoom = map.getZoom()
+                    if (zoom > 10) {
+                        document.getElementById('feature-word-cloud-div').style.visibility = "visible";
+                        document.getElementById('feature-word-cloud-img').src = `${API_URL}/${feature.properties.word_cloud_url}`;
+                        document.getElementById('feature-sentiments-div').style.visibility = "visible";
+                        document.getElementById('feature-sentiments-img').src = `${API_URL}/${feature.properties.sentiments_url}`;
+                    } else {
+                        document.getElementById('feature-word-cloud-div').style.visibility = "hidden";
+                        document.getElementById('feature-sentiments-div').style.visibility = "hidden";
+                    }
                 });
             }
         })

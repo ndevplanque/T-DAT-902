@@ -22,3 +22,100 @@ Test d'écriture du log
 2025-06-09 14:04:15,852 - INFO - Génération du rapport de validation
 2025-06-09 14:04:15,853 - INFO - ✓ Rapport HTML généré
 2025-06-09 14:04:15,854 - INFO - Validation terminée avec succès
+Test d'écriture du log
+2025-06-12 08:35:49,976 - INFO - Démarrage de la validation des agrégations properties
+2025-06-12 08:35:49,986 - INFO - Connexion à PostgreSQL réussie
+2025-06-12 08:35:49,987 - INFO - Vérification de la disponibilité des agrégations properties...
+2025-06-12 08:35:49,990 - WARNING - Erreur lors de la vérification (tentative 1/30): relation "properties_cities_stats" does not exist
+LINE 1: SELECT COUNT(*) FROM properties_cities_stats
+                             ^
+
+2025-06-12 08:35:49,991 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:35:59,997 - WARNING - Erreur lors de la vérification (tentative 2/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:35:59,998 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:36:10,000 - WARNING - Erreur lors de la vérification (tentative 3/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:36:10,003 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:36:20,006 - WARNING - Erreur lors de la vérification (tentative 4/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:36:20,006 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:36:30,009 - WARNING - Erreur lors de la vérification (tentative 5/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:36:30,009 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:36:40,013 - WARNING - Erreur lors de la vérification (tentative 6/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:36:40,014 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:36:50,022 - WARNING - Erreur lors de la vérification (tentative 7/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:36:50,023 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:37:00,025 - WARNING - Erreur lors de la vérification (tentative 8/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:37:00,027 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:37:10,026 - WARNING - Erreur lors de la vérification (tentative 9/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:37:10,027 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:37:20,030 - WARNING - Erreur lors de la vérification (tentative 10/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:37:20,032 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:37:30,033 - WARNING - Erreur lors de la vérification (tentative 11/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:37:30,034 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:37:40,034 - WARNING - Erreur lors de la vérification (tentative 12/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:37:40,035 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:37:50,039 - WARNING - Erreur lors de la vérification (tentative 13/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:37:50,041 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:38:00,043 - WARNING - Erreur lors de la vérification (tentative 14/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:38:00,044 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:38:10,059 - WARNING - Erreur lors de la vérification (tentative 15/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:38:10,062 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:38:20,075 - WARNING - Erreur lors de la vérification (tentative 16/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:38:20,076 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:38:30,081 - WARNING - Erreur lors de la vérification (tentative 17/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:38:30,083 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:38:40,096 - WARNING - Erreur lors de la vérification (tentative 18/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:38:40,098 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:38:50,111 - WARNING - Erreur lors de la vérification (tentative 19/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:38:50,113 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:39:00,127 - WARNING - Erreur lors de la vérification (tentative 20/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:39:00,129 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:39:10,275 - WARNING - Erreur lors de la vérification (tentative 21/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:39:10,276 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:39:20,289 - WARNING - Erreur lors de la vérification (tentative 22/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:39:20,290 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:39:30,302 - WARNING - Erreur lors de la vérification (tentative 23/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:39:30,304 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:39:40,317 - WARNING - Erreur lors de la vérification (tentative 24/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:39:40,318 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:39:50,330 - WARNING - Erreur lors de la vérification (tentative 25/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:39:50,331 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:40:00,344 - WARNING - Erreur lors de la vérification (tentative 26/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:40:00,344 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:40:10,351 - WARNING - Erreur lors de la vérification (tentative 27/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:40:10,352 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:40:20,366 - WARNING - Erreur lors de la vérification (tentative 28/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:40:20,368 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:40:30,374 - WARNING - Erreur lors de la vérification (tentative 29/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:40:30,375 - INFO - Nouvelle tentative dans 10 secondes...
+2025-06-12 08:40:40,390 - WARNING - Erreur lors de la vérification (tentative 30/30): current transaction is aborted, commands ignored until end of transaction block
+
+2025-06-12 08:40:40,391 - ERROR - Agrégations non disponibles après le nombre maximum de tentatives
+2025-06-12 08:40:40,391 - ERROR - Agrégations non disponibles, arrêt de la validation

@@ -1,14 +1,14 @@
 =======================================
 SYNTHÈSE DU TRAITEMENT DES AVIS
-Date: 2025-04-04 15:15:15
+Date: 2025-06-12 08:35:47
 =======================================
 
 Total des villes: 34455
-Villes traitées: 116 (0.34%)
-Total des mots extraits: 14966
-Moyenne de mots par ville: 129.02
+Villes traitées: 34455 (100.0%)
+Total des mots extraits: 368672
+Moyenne de mots par ville: 35.61
 
 SENTIMENTS MOYENS:
-Positif: 53.16%
-Neutre: 37.84%
-Négatif: 9.0%
+Positif: 36.15%
+Neutre: 51.87%
+Négatif: 11.99%

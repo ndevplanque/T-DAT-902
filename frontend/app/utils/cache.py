@@ -2,10 +2,10 @@ import streamlit as st
 from utils import api
 
 @st.cache_data
-def get_price_tables():
+def get_area_listing():
     """Met en cache uniquement si la requête réussit."""
-    data = api.v1_price_tables()
-    if data is not None:
-        return data
+    areas = api.v1_area_listing()
+    if areas is not None:
+        return areas
     else:
-        raise RuntimeError("Échec de la récupération de la carte")  # Empêche le cache sur un échec
+        raise RuntimeError("Échec de la récupération des zones")  # Empêche le cache sur un échec

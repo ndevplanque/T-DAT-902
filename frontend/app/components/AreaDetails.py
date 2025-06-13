@@ -2,6 +2,8 @@ import streamlit as st
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import pandas as pd
+from datetime import datetime
 
 
 def AreaDetails(item, area_details, area_transactions):
@@ -58,12 +60,38 @@ def AreaDetails(item, area_details, area_transactions):
 
     st.write("---")
     st.subheader("Transactions Immobilières")
-    st.write(area_transactions)
+
+    nb_transactions = 0
+    if area_transactions and len(area_transactions) > 0:
+        nb_transactions = len(area_transactions)
+
+    with st.expander(f"{nb_transactions} transactions disponibles", expanded=(nb_transactions == 0)):
+        if nb_transactions == 0:
+            st.write("Aucune transaction immobilière disponible pour cette localité.")
+            return
+
+        data_list = [{
+            "Date": transaction['date'],
+            "Prix (€)": transaction["prix"],
+            "Surface bâtiment (m2)": transaction["surface_batiment"],
+            "Surface terrain (m2)": transaction["surface_terrain"]
+        } for transaction in area_transactions]
+
+        df = pd.DataFrame(data_list)
+
+        df = df.sort_values(by='Date', ascending=True)
+
+        # Affichage (la colonne "Date réelle" est utilisée pour le tri mais on ne l'affiche pas)
+        st.dataframe(
+            df[["Date", "Prix (€)", "Surface bâtiment (m2)", "Surface terrain (m2)"]],
+            use_container_width=True,
+            hide_index=True
+        )
 
 
 def build_wordcloud_fig(data):
     # Générer le word cloud
-    wc = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(data)
+    wc = WordCloud(width=800, height=750, background_color='white').generate_from_frequencies(data)
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.imshow(wc, interpolation='bilinear')
     ax.axis("off")

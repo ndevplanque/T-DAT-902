@@ -1,6 +1,8 @@
 from v1.database.postgres import Postgres
 import v1.database.queries as q
 import numpy as np
+import re
+import logs
 
 
 def get_cities():
@@ -18,34 +20,59 @@ def get_regions():
     return response_builder("Régions", data, aggs)
 
 
+def extract_entity(query):
+    try:
+        match = re.search(r'FROM\s+(\w+)', query)
+        entity = match.group(1)
+        if entity in ["cities", "departments", "regions"]:
+            return entity
+        return None
+    except AttributeError:
+        return None
+
+
 def parse_query_result(query):
     data = []
-    min_price = None
-    max_price = None
+    aggs_min_price = None
+    aggs_max_price = None
+
+    entity = extract_entity(query)
 
     db = Postgres()
-    for id, name in db.fetchall(query):
-        zone_price = generate_random_price()
-        if min_price is None or zone_price < min_price:
-            min_price = zone_price
-        if max_price is None or zone_price > max_price:
-            max_price = zone_price
+    for id, name, nb_transactions, area_min_price, area_max_price, area_average_price in db.fetchall(query):
+        # Filtrer les villes qui sont listées par arrondissements
+        if entity == "cities":
+            if name.startswith("Paris "):
+                continue
+            if name.startswith("Marseille "):
+                continue
+
+        # Filtrer les prix aberrants
+        if area_average_price is not None and area_average_price < 500:
+            area_average_price = None
+
+        # Calculer les prix minimum et maximum pour la légende
+        if area_average_price is not None and (aggs_min_price is None or area_average_price < aggs_min_price):
+            aggs_min_price = area_average_price
+        if area_average_price is not None and (aggs_max_price is None or area_average_price > aggs_max_price):
+            aggs_max_price = area_average_price
+
         data.append({
             "id": id,
             "name": name,
-            "price": zone_price,
+            "price": area_average_price,
         })
 
     db.close()
 
-    if min_price is None:
-        min_price = 0
-    if max_price is None:
-        max_price = 0
+    if aggs_min_price is None:
+        aggs_min_price = 0
+    if aggs_max_price is None:
+        aggs_max_price = 0
 
     aggs = {
-        "min_price": min_price,
-        "max_price": max_price
+        "min_price": aggs_min_price,
+        "max_price": aggs_max_price
     }
 
     return [data, aggs]

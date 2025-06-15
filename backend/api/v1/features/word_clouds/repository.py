@@ -3,11 +3,11 @@ from v1.database.mongodb import MongoDB
 
 def get_word_frequencies(entity, id):
     """Retourne un nuage de mots pour une entité donnée"""
-
     if entity != 'cities':
         raise AttributeError("Les nuages de mots ne sont disponibles que pour les 'cities'")
 
     with MongoDB() as db:
+        # Recherche du document correspondant dans la base de données
         document = db.find_one(
             collection='mots_villes',
             query={'city_id': id},
@@ -15,6 +15,7 @@ def get_word_frequencies(entity, id):
         )
         frequencies = {}
         if document and 'mots' in document:
+            # Construction du dictionnaire des fréquences
             for item in document['mots']:
                 frequencies[item['mot']] = item['poids']
         return frequencies

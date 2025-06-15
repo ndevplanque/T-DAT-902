@@ -6,8 +6,8 @@ import v1.features.word_clouds.repository as repository
 
 def word_clouds(entity, id):
     # Vérifier que l'entité est valide
-    if entity not in ["cities", "departments", "regions"]:
-        raise AttributeError("Les nuages de mots ne sont disponibles que pour les 'cities', 'departments' ou 'regions'")
+    if entity not in ["cities"]:  # , "departments", "regions"]:
+        raise AttributeError("Les nuages de mots ne sont disponibles que pour les 'cities'")
 
     # Récupérer les fréquences des mots
     frequencies = repository.get_word_frequencies(entity, id)
@@ -25,7 +25,7 @@ def build_word_cloud(frequencies):
         raise ValueError("Données invalides.")
 
     # Générer le nuage de mots
-    return WordCloud(width=300, height=200, background_color="white").generate_from_frequencies(frequencies)
+    return WordCloud(width=250, height=200, background_color="white").generate_from_frequencies(frequencies)
 
 
 def to_png(word_cloud):

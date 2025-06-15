@@ -30,6 +30,20 @@ def test_map_areas(mock_get_entity_from_zoom, mock_get_feature_collection):
         assert str(e) == "Bounds cannot be None"
 
 
+@patch('v1.features.map_areas.repository.get_feature_collection')
+@patch('v1.features.map_areas.service.get_entity_from_zoom')
+def test_map_areas_with_invalid_bounds(mock_get_entity_from_zoom, mock_get_feature_collection):
+    """Test de la fonction map_areas avec des bounds invalides"""
+    mock_get_entity_from_zoom.return_value = "cities"
+    mock_get_feature_collection.return_value = {}
+
+    try:
+        map_areas(None)
+        assert False, "Expected an exception for invalid bounds"
+    except ValueError as e:
+        assert str(e) == "Bounds cannot be None"
+
+
 def test_get_entity_from_zoom():
     """Test de la fonction get_entity_from_zoom"""
 
@@ -42,3 +56,13 @@ def test_get_entity_from_zoom():
             assert entity == "departments"
         else:
             assert entity == "cities"
+
+
+def test_get_entity_from_zoom_extreme_values():
+    """Test de la fonction get_entity_from_zoom avec des valeurs extrêmes de zoom"""
+    bounds_low_zoom = Bounds(1, 48.8566, 2.3522, 48.8567, 2.3523)
+    bounds_high_zoom = Bounds(15, 48.8566, 2.3522, 48.8567, 2.3523)
+
+    assert get_entity_from_zoom(bounds_low_zoom) == "regions"
+    assert get_entity_from_zoom(bounds_high_zoom) == "cities"
+

@@ -30,11 +30,12 @@ backend/
 │       ├── features/           # Fonctionnalités métier
 │       │   ├── health/         # Health check
 │       │   ├── map_areas/      # Données géospatiales
-│       │   ├── price_tables/   # Tableaux prix immobiliers
-│       │   ├── sentiments/     # Analyse sentiment
-│       │   ├── word_clouds/    # Nuages de mots
+│       │   ├── area_listing/   # Listing zones avec prix réels
+│       │   ├── area_transactions/ # Transactions immobilières détaillées
 │       │   ├── area_details/   # Détails zones
-│       │   └── mongodb/        # Introspection MongoDB
+│       │   ├── databases/      # Introspection bases de données
+│       │   ├── sentiments/     # Analyse sentiment
+│       │   └── word_clouds/    # Nuages de mots
 │       └── models/             # Modèles de données
 ├── tests/                      # Tests unitaires
 ├── requirements.txt            # Dépendances Python
@@ -46,7 +47,7 @@ backend/
 ### API v1 (/api/v1)
 
 1. **GET /health** - Health check de l'API
-   - **Réponse**: `{"status": "healthy", "timestamp": "..."}`
+   - **Réponse**: `{"success": true}`
 
 2. **GET /map-areas/{zoom}/{sw_lat}/{sw_lon}/{ne_lat}/{ne_lon}** - Données cartographiques
    - **Paramètres**: Niveau de zoom et coordonnées du viewport
@@ -56,24 +57,38 @@ backend/
      - Zoom ≤ 6: Retourne les régions
    - **Réponse**: GeoJSON avec géométries et métadonnées
 
-3. **GET /price-tables** - Tableaux de prix immobiliers
-   - **Réponse**: Prix moyens par m² pour régions/départements/villes
-   - **Note**: Données simulées (1500-6000€/m²)
+3. **GET /area-listing** - Listing des zones avec données immobilières réelles
+   - **Réponse**: Liste complète régions/départements/villes avec statistiques prix
+   - **Données**: Prix min/max/moyenne, nombre de transactions depuis 2014
+   - **Filtrage**: Exclusion arrondissements Paris/Marseille (éviter doublons)
+   - **Format**: `{"regions": [...], "departments": [...], "cities": [...]}`
 
-4. **GET /sentiments/{entity}/{id}** - Graphique d'analyse de sentiment
-   - **Paramètres**: entity (cities/departments/regions), id numérique
-   - **Réponse**: Image PNG (graphique donut) générée par matplotlib
-   - **Données**: Pourcentages positif/négatif/neutre des avis
+4. **GET /sentiments/{entity}/{id}** - Image d'analyse de sentiment
+   - **Paramètres**: entity (cities uniquement), id numérique
+   - **Réponse**: Image PNG binaire (graphique donut) générée par matplotlib
+   - **Content-Type**: image/png
+   - **Données**: Pourcentages positif/négatif/neutre des avis MongoDB
 
-5. **GET /word-clouds/{entity}/{id}** - Nuage de mots
-   - **Paramètres**: entity (cities/departments/regions), id numérique
-   - **Réponse**: Image PNG (300x200px) générée par wordcloud
+5. **GET /word-clouds/{entity}/{id}** - Image nuage de mots
+   - **Paramètres**: entity (cities uniquement), id numérique
+   - **Réponse**: Image PNG binaire générée par wordcloud
+   - **Content-Type**: image/png
    - **Source**: Fréquences mots de la collection `mots_villes`
 
 6. **GET /area-details/{entity}/{id}** - Détails complets d'une zone
    - **Réponse**: Informations complètes (nom, population, avis, etc.)
 
-7. **GET /mongodb/schema** - Schéma de la base MongoDB
+7. **GET /area-transactions/{entity}/{id}** - Transactions immobilières détaillées
+   - **Paramètres**: entity (cities uniquement), id numérique
+   - **Réponse**: Liste transactions individuelles avec dates, prix, surfaces
+   - **Spécial**: Agrégation automatique Paris (75056→75101-75120) et Marseille (13055→13201-13216)
+   - **Filtrage**: Données aberrantes < 500€ exclues
+   - **Tri**: Par date décroissante
+
+8. **GET /postgres/schema** - Schéma base PostgreSQL
+   - **Réponse**: Structure tables avec exemples et définitions colonnes
+
+9. **GET /mongodb/schema** - Schéma de la base MongoDB
    - **Réponse**: Structure des collections et champs
 
 ## Connexions aux bases de données
@@ -82,23 +97,27 @@ backend/
 
 ```python
 class Postgres:
-    - Host: host.docker.internal:5432
+    - Host: host.docker.internal:5432  # Configuration Docker
     - Database: gis_db
     - Utilisateur: postgres/postgres
     - Features: Context manager, autocommit, gestion erreurs
+    - Schema introspection: Méthode schema() disponible
 ```
 
 **Tables utilisées**:
 - `cities`: Géométries des villes
 - `departments`: Géométries des départements  
 - `regions`: Géométries des régions
-- `properties`: Données immobilières (en développement)
+- `properties`: Transactions immobilières individuelles (DVF)
+- `properties_cities_stats`: Statistiques pré-calculées par ville
+- `properties_departments_stats`: Statistiques pré-calculées par département
+- `properties_regions_stats`: Statistiques pré-calculées par région
 
 ### MongoDB
 
 ```python
 class MongoDB:
-    - URI: mongodb://root:rootpassword@host.docker.internal:27017
+    - URI: mongodb://root:rootpassword@host.docker.internal:27017  # Configuration Docker
     - Database: villes_france
     - Features: Context manager, conversion ObjectId, filtrage champs
 ```
@@ -122,8 +141,24 @@ features/feature_name/
 
 ```python
 # Service: Détermine le type d'entité selon le zoom
-# Repository: Requête PostGIS avec ST_Intersects
-# Résultat: GeoJSON optimisé pour l'affichage carte
+# Repository: Requête PostGIS avec ST_Intersects + JOIN statistiques
+# Résultat: GeoJSON avec données prix réelles intégrées
+```
+
+### Exemple: Area Listing  
+
+```python
+# Service: Agrège données des 3 niveaux géographiques
+# Repository: Requêtes optimisées sur tables statistiques
+# Résultat: Listing complet avec prix min/max/moyenne par zone
+```
+
+### Exemple: Area Transactions
+
+```python
+# Service: Gestion spéciale Paris/Marseille + filtrage qualité
+# Repository: Requêtes sur table properties avec agrégations
+# Résultat: Transactions individuelles triées par date
 ```
 
 ### Exemple: Sentiments
@@ -207,22 +242,50 @@ docker compose exec backend pytest --cov-report=html
 - **Format optimisé**: PNG optimisé pour le web
 - **Taille fixe**: Dimensions standardisées (300x200px)
 
+## Intégration données immobilières réelles
+
+### Source des données
+- **DVF (Demandes de Valeurs Foncières)**: Données officielles transactions immobilières
+- **Période**: 2014 à aujourd'hui
+- **Couverture**: France métropolitaine complète
+
+### Traitement des données
+- **Filtrage qualité**: Exclusion transactions < 500€ (données aberrantes)
+- **Agrégation géographique**: Calculs automatiques min/max/moyenne par zone
+- **Gestion spéciale**: Paris et Marseille (consolidation arrondissements)
+- **Statistiques pré-calculées**: Tables optimisées pour performances
+
+### Architecture statistiques
+```sql
+-- Exemple structure table statistiques
+properties_cities_stats:
+- city_id: Identifiant ville
+- transactions_count: Nombre de transactions
+- min_price_per_m2: Prix minimum par m²
+- max_price_per_m2: Prix maximum par m²
+- avg_price_per_m2: Prix moyen par m²
+```
+
 ## Limitations actuelles
 
 1. **Credentials hardcodés**: Configuration BDD dans le code
-2. **Prix simulés**: Pas d'intégration données immobilières réelles  
-3. **Pas de cache**: Régénération images à chaque requête
-4. **Authentification**: Aucune sécurité d'accès
-5. **Monitoring**: Logging basique sans métriques
+2. **Sentiments/word-clouds villes uniquement**: Départements/régions non implémentés
+3. **Transactions villes uniquement**: Départements/régions non implémentés  
+4. **Pas de cache**: Régénération images PNG à chaque requête
+5. **Authentification**: Aucune sécurité d'accès
+6. **Monitoring**: Logging basique sans métriques
+7. **Host configuration**: Utilise host.docker.internal (spécifique Docker Desktop)
 
 ## Évolutions futures
 
 1. **Configuration externalisée**: Variables d'environnement
 2. **Cache Redis**: Mise en cache des images et requêtes
 3. **Authentification JWT**: Sécurisation des endpoints
-4. **Données réelles**: Intégration vraies données DVF
+4. **Transactions départements/régions**: Extension endpoint area-transactions
 5. **Monitoring**: Métriques et alertes applicatives
 6. **Rate limiting**: Protection contre le spam
+7. **API pagination**: Gestion grandes listes de transactions
+8. **Données temps réel**: Mise à jour automatique DVF
 
 ## Dépendances
 
@@ -236,6 +299,7 @@ pymongo==4.5.0
 numpy==1.24.3
 matplotlib==3.7.2
 wordcloud==1.9.2
+plotly
 ```
 
 ### Développement

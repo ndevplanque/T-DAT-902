@@ -22,10 +22,11 @@ frontend/app/
 ├── 🏠_Homepedia.py           # Page d'accueil (point d'entrée)
 ├── pages/                    # Pages navigables
 │   ├── 1_🌍_Map.py          # Carte interactive
-│   ├── 2_💰_Price_Tables.py  # Tableaux de prix
-│   └── 3_🧪_Test.py         # Page de test/développement
+│   ├── 2_📙_Details.py      # Page détails zones avec visualisations
+│   └── 3_ℹ️_About.py        # Page à propos (équipe, sources)
 ├── components/               # Composants réutilisables
-│   └── PriceTable.py        # Composant tableau de prix
+│   ├── PriceTable.py        # Composant tableau de prix
+│   └── AreaDetails.py       # Composant détails zone (ratings, charts)
 └── utils/                   # Utilitaires
     ├── api.py               # Interface API backend
     ├── cache.py             # Gestion du cache
@@ -54,11 +55,10 @@ Streamlit détecte automatiquement les fichiers dans le dossier `/pages/` et gé
 
 ```python
 # Vérification de santé avec feedback visuel
-health_status = api.v1_health()
-if health_status:
-    st.success("✅ API Backend connectée")
+if api.v1_health()["success"]:
+    st.write("Statut : en ligne ✅")
 else:
-    st.error("❌ API Backend non disponible")
+    st.error("Statut : hors-ligne ❌")
 ```
 
 #### 2. Carte interactive (1_🌍_Map.py)
@@ -69,42 +69,79 @@ else:
 - Configuration en mode "wide" pour maximiser l'espace
 - Intégration HTML personnalisée via `st.components.v1.html()`
 
-#### 3. Tableaux de prix (2_💰_Price_Tables.py)
-**Fonction**: Affichage tabulaire des données de prix immobiliers
+#### 3. Page détails (2_📙_Details.py)
+**Fonction**: Exploration détaillée des zones avec intégration tableaux prix
 
 **Fonctionnalités**:
-- Récupération des données via cache optimisé
-- Affichage multi-tableaux avec composant réutilisable
-- Gestion d'erreurs robuste avec messages utilisateur
-- Interface expandable pour économiser l'espace
+- **Sélecteur de localités**: Dropdown pour choisir villes spécifiques (cities uniquement)
+- **Affichage conditionnel**: 
+  - Si ville sélectionnée: Composant AreaDetails avec ratings, sentiment, word cloud, transactions
+  - Si aucune sélection: Tableaux prix pour régions, départements, villes
+- **Gestion d'erreurs**: Try-catch avec messages utilisateur explicites
 
-#### 4. Page test (3_🧪_Test.py)
-**Fonction**: Environnement de développement et tests
+#### 4. Page à propos (3_ℹ️_About.py)
+**Fonction**: Informations projet et crédits équipe
 
-**État**: Page minimale pour tests et développements futurs
+**Contenu**:
+- **Sources de données**: Description BAN, data.gouv.fr
+- **Crédits équipe**: Liens vers profils GitHub des membres
+- **Contexte projet**: Présentation générale de Homepedia
 
 ## Composants de visualisation
 
 ### Composant PriceTable
 
-Le composant `PriceTable` fournit une interface standardisée pour afficher les données de prix:
+Composant mis à jour pour la nouvelle structure de données:
 
 ```python
 def PriceTable(data):
     """Affiche un tableau de prix avec interface pliable"""
-    min_price = min(item["Moyenne"] for item in data["data"])
-    max_price = max(item["Moyenne"] for item in data["data"])
+    # Nouvelle structure: data['aggs']['min_price'] au lieu de calcul manuel
+    min_price = data['aggs']['min_price']
+    max_price = data['aggs']['max_price']
     
     with st.expander(f"📍 {data['title']} (Min: {min_price}€ | Max: {max_price}€)"):
-        df = pd.DataFrame(data["data"])
+        # Nouvelle structure: data["items"] au lieu de data["data"]
+        df = pd.DataFrame(data["items"])
         st.dataframe(df, use_container_width=True)
 ```
 
-**Caractéristiques**:
-- **Interface pliable**: `st.expander` pour optimiser l'espace
-- **Statistiques**: Affichage min/max dans le titre
-- **DataFrame intégré**: Conversion automatique et affichage responsive
-- **Largeur adaptive**: `use_container_width=True`
+**Changements structure**:
+- **Données**: `data["items"]` remplace `data["data"]`
+- **Statistiques**: `data['aggs']['min_price']` pré-calculées
+- **Colonnes**: "Numéro", "Zone", "Prix (€/m²)" standardisées
+
+### Composant AreaDetails
+
+Nouveau composant pour visualisations avancées:
+
+```python
+def AreaDetails(item, area_details, area_transactions):
+    """Affiche détails complets d'une zone avec visualisations"""
+    # Système de notation (5 catégories)
+    grades = area_details["rating"]["grades"]
+    # Colonnes pour les 5 catégories
+    educ, envi, secu, spor, life = st.columns(5, border=True)
+    
+    # Visualisations dual-column
+    col1, col2 = st.columns(2)
+    with col1:
+        # Graphique sentiment (Plotly donut)
+        sentiments_fig = build_sentiments_fig(area_details['sentiments'])
+        st.plotly_chart(sentiments_fig)
+    
+    with col2:
+        # Nuage de mots (matplotlib/wordcloud)
+        wordcloud_fig = build_wordcloud_fig(area_details['word_frequencies'])
+        st.pyplot(wordcloud_fig)
+```
+
+**Fonctionnalités**:
+- **Ratings visuels**: Métriques grandes avec scores /5
+- **Charts interactifs**: Plotly pour sentiment analysis
+- **Nuages de mots**: Génération dynamique avec wordcloud
+- **Layout responsive**: Colonnes adaptatives
+- **Gestion d'erreurs**: Fallbacks gracieux si données manquantes
 
 ### Carte interactive Leaflet
 
@@ -121,11 +158,12 @@ const API_URL = "http://localhost:5001";
 - Leaflet.js (v1.9.4)         # Cartographie de base
 - Leaflet-Ajax               # Chargement GeoJSON dynamique
 - Leaflet-Fullscreen         # Mode plein écran
+- OpenStreetMap tiles        # Tuiles cartographiques (pas Mapbox)
 ```
 
 **Couches de données**:
-- **priceLayer**: Visualisation des prix immobiliers par zone
-- **satisfactionLayer**: Données de satisfaction (préparé, non implémenté)
+- **priceLayer**: Visualisation des prix immobiliers par zone (implémenté)
+- **satisfactionLayer**: Interface préparée mais non implémentée
 
 **Interactions utilisateur**:
 - **Hover**: Tooltips avec informations de prix
@@ -162,17 +200,26 @@ def _api_v1(endpoint):
    - Vérification de la disponibilité du backend
    - Affichage de statut en temps réel
 
-2. **Price Tables**: `GET /api/v1/price-tables`
-   - Récupération des tableaux de prix par région/département/ville
+2. **Area Listing**: `GET /api/v1/area-listing`
+   - Récupération listing complet zones avec statistiques prix réelles
+   - Structure: `{"regions": [...], "departments": [...], "cities": [...]}`
    - Mise en cache automatique
 
-3. **Map Areas**: `GET /api/v1/map-areas/{zoom}/{bounds}`
-   - Données géospatiales pour la carte
+3. **Area Details**: `GET /api/v1/area-details/{entity}/{id}`
+   - Données détaillées zones (ratings, population, avis)
+   - Intégration dans composant AreaDetails
+
+4. **Area Transactions**: `GET /api/v1/area-transactions/{entity}/{id}`
+   - Transactions immobilières individuelles par zone
+   - Données réelles DVF avec dates, prix, surfaces
+
+5. **Map Areas**: `GET /api/v1/map-areas/{zoom}/{bounds}`
+   - Données géospatiales avec statistiques prix intégrées
    - Chargement dynamique selon le viewport
 
-4. **Word Clouds & Sentiments**: 
+6. **Word Clouds & Sentiments**: 
    - Génération d'images à la demande
-   - Intégration dans les panneaux de détails
+   - Intégration dans panneau détails AreaDetails
 
 ## Gestion du cache
 
@@ -181,10 +228,10 @@ def _api_v1(endpoint):
 ```python
 # utils/cache.py
 @st.cache_data
-def get_price_tables():
+def get_area_listing():
     """Cache uniquement les requêtes réussies"""
     try:
-        data = api.v1_price_tables()
+        data = api.v1_area_listing()
         if data is not None:
             return data
         else:
@@ -237,6 +284,8 @@ streamlit       # Framework web principal
 requests        # Communication HTTP
 pandas          # Manipulation de données
 python-dotenv   # Variables d'environnement
+wordcloud       # Génération nuages de mots
+plotly          # Graphiques interactifs (donut charts)
 ```
 
 ## Interface utilisateur et UX
@@ -291,16 +340,20 @@ python-dotenv   # Variables d'environnement
 
 1. **Token Mapbox inutilisé**: Configuration présente mais OpenStreetMap utilisé
 2. **Couche satisfaction**: Interface préparée mais données backend manquantes
-3. **Page test vide**: Environnement de développement non utilisé
+3. **Transactions limitées**: Endpoint area-transactions villes uniquement
 4. **Cache global**: Pas de granularité fine par endpoint
+5. **Images non cachées**: Nuages de mots régénérés à chaque visite
 
 ### Évolutions prévues
 
-1. **Authentification**: Intégration système de login
-2. **Dashboard avancé**: Métriques et KPIs temps réel
-3. **Export de données**: Fonctionnalités d'export avancées
-4. **Personnalisation**: Thèmes et préférences utilisateur
-5. **Mobile responsive**: Optimisation pour appareils mobiles
+1. **Cache images**: Mise en cache nuages de mots et graphiques
+2. **Transactions étendues**: Support départements/régions
+3. **Dashboard avancé**: Métriques et KPIs temps réel
+4. **Export de données**: Fonctionnalités d'export avancées (CSV, PDF)
+5. **Personnalisation**: Thèmes et préférences utilisateur
+6. **Mobile responsive**: Optimisation pour appareils mobiles
+7. **Authentification**: Intégration système de login
+8. **Historique transactions**: Graphiques évolution prix dans le temps
 
 ## Sécurité
 

@@ -1,6 +1,6 @@
 {
   "general": {
-    "date_rapport": "2025-06-09T14:04:13.744105",
+    "date_rapport": "2025-06-12T08:35:47.621666",
     "nombre_villes": 34455,
     "nombre_avis": 54656,
     "nombre_departements": 94,
@@ -15,17 +15,10 @@
       "note_moyenne": 3.7
     },
     {
-      "id": "35",
-      "nom": "Ille-et-Vilaine",
-      "nombre_villes": 105,
-      "nombre_avis": 822,
-      "note_moyenne": 3.7
-    },
-    {
-      "id": "53",
-      "nom": "Mayenne",
-      "nombre_villes": 30,
-      "nombre_avis": 154,
+      "id": "85",
+      "nom": "Vendée",
+      "nombre_villes": 91,
+      "nombre_avis": 565,
       "note_moyenne": 3.7
     },
     {
@@ -43,25 +36,25 @@
       "note_moyenne": 3.7
     },
     {
+      "id": "35",
+      "nom": "Ille-et-Vilaine",
+      "nombre_villes": 105,
+      "nombre_avis": 822,
+      "note_moyenne": 3.7
+    },
+    {
+      "id": "53",
+      "nom": "Mayenne",
+      "nombre_villes": 30,
+      "nombre_avis": 154,
+      "note_moyenne": 3.7
+    },
+    {
       "id": "49",
       "nom": "Maine-et-Loire",
       "nombre_villes": 61,
       "nombre_avis": 503,
       "note_moyenne": 3.7
-    },
-    {
-      "id": "85",
-      "nom": "Vendée",
-      "nombre_villes": 91,
-      "nombre_avis": 565,
-      "note_moyenne": 3.7
-    },
-    {
-      "id": "19",
-      "nom": "Corrèze",
-      "nombre_villes": 22,
-      "nombre_avis": 138,
-      "note_moyenne": 3.6
     },
     {
       "id": "29",
@@ -71,10 +64,17 @@
       "note_moyenne": 3.6
     },
     {
-      "id": "56",
-      "nom": "Morbihan",
-      "nombre_villes": 104,
-      "nombre_avis": 701,
+      "id": "86",
+      "nom": "Vienne",
+      "nombre_villes": 40,
+      "nombre_avis": 237,
+      "note_moyenne": 3.6
+    },
+    {
+      "id": "12",
+      "nom": "Aveyron",
+      "nombre_villes": 27,
+      "nombre_avis": 135,
       "note_moyenne": 3.6
     }
   ],

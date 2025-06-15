@@ -8,6 +8,8 @@ st.set_page_config(page_icon="🏠")
 st.title("Homepedia 🏠")
 
 if api.v1_health()["success"]:
-    st.write("API Flask : Online ✅")
+    st.write("Statut : en ligne ✅")
 else:
-    st.error("API Flask : Offline ❌")
+    st.error("Statut : hors-ligne ❌")
+
+st.write("Choisissez une page dans le menu latéral pour commencer.")

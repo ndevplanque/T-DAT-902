@@ -42,25 +42,6 @@ Pour optimiser les performances, le scraper utilise une approche par lots avec m
 3. Le nombre de workers est configurable via `MAX_WORKERS`
 4. Une barre de progression (tqdm) affiche l'avancement global
 
-```python
-# Exemple simplifié du code de multithreading
-with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-    future_to_url = {
-        executor.submit(process_ville, url, client, villes_collection, avis_collection): url
-        for url in batch
-    }
-    
-    for future in concurrent.futures.as_completed(future_to_url):
-        url = future_to_url[future]
-        try:
-            nb_avis = future.result()
-            total_avis += nb_avis
-            pbar.update(1)
-        except Exception as e:
-            logger.error(f"Erreur lors du traitement de {url}: {e}")
-            pbar.update(1)
-```
-
 ### Mécanismes anti-blocage
 
 Pour éviter d'être bloqué par le site, plusieurs mécanismes sont mis en place :
@@ -81,16 +62,6 @@ Pour éviter d'être bloqué par le site, plusieurs mécanismes sont mis en plac
    ```
 
 3. **Retry automatique** : En cas d'échec d'une requête, le système réessaie avec un délai croissant.
-   ```python
-   for attempt in range(max_retries):
-       try:
-           response = session.get(url, timeout=5)
-           if response.status_code == 200:
-               return response.text
-       except:
-           # Wait before retrying
-           time.sleep(delay * (attempt + 1))
-   ```
 
 ### Structure de données
 

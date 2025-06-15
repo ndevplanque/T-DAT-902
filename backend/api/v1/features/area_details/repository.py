@@ -14,7 +14,7 @@ def get_cities_area_details(id):
         }
     }
 
-    with (MongoDB() as db):
+    with MongoDB() as db:
 
         city = db.find_one(
             collection='villes',

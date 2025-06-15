@@ -374,10 +374,14 @@ def aggregate_by_region(db, regions_info):
 
     return region_stats
 
-# Fonctions d'agrégation pour les properties
+# Agrégation des données immobilières
 def aggregate_properties_by_city(pg_conn):
-    """Agrège les données properties par ville"""
-    logger.info("Début de l'agrégation des properties par ville")
+    """Calcule les statistiques immobilières par ville
+    
+    Args:
+        pg_conn: Connexion PostgreSQL
+    """
+    logger.info("Début de l'agrégation des données immobilières par ville")
     
     try:
         with pg_conn.cursor() as cur:
@@ -472,14 +476,18 @@ def aggregate_properties_by_city(pg_conn):
             logger.info(f"Agrégation par ville terminée: {count_result[0]} villes dans la table")
             
     except Exception as e:
-        logger.error(f"Erreur lors de l'agrégation des properties par ville: {e}")
+        logger.error(f"Erreur lors de l'agrégation immobilière par ville: {e}")
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
 def aggregate_properties_by_department(pg_conn):
-    """Agrège les données properties par département"""
-    logger.info("Début de l'agrégation des properties par département")
+    """Calcule les statistiques immobilières par département
+    
+    Args:
+        pg_conn: Connexion PostgreSQL
+    """
+    logger.info("Début de l'agrégation des données immobilières par département")
     
     try:
         with pg_conn.cursor() as cur:
@@ -575,12 +583,16 @@ def aggregate_properties_by_department(pg_conn):
             logger.info(f"Agrégation par département terminée: {affected_rows} départements traités")
             
     except Exception as e:
-        logger.error(f"Erreur lors de l'agrégation des properties par département: {e}")
+        logger.error(f"Erreur lors de l'agrégation immobilière par département: {e}")
         raise
 
 def aggregate_properties_by_region(pg_conn):
-    """Agrège les données properties par région"""
-    logger.info("Début de l'agrégation des properties par région")
+    """Calcule les statistiques immobilières par région
+    
+    Args:
+        pg_conn: Connexion PostgreSQL
+    """
+    logger.info("Début de l'agrégation des données immobilières par région")
     
     try:
         with pg_conn.cursor() as cur:
@@ -678,7 +690,7 @@ def aggregate_properties_by_region(pg_conn):
             logger.info(f"Agrégation par région terminée: {affected_rows} régions traitées")
             
     except Exception as e:
-        logger.error(f"Erreur lors de l'agrégation des properties par région: {e}")
+        logger.error(f"Erreur lors de l'agrégation immobilière par région: {e}")
         raise
 
 # Fonction principale
@@ -720,17 +732,17 @@ def main():
         aggregate_by_department(mongo_db, dept_to_region, departments_info)
         aggregate_by_region(mongo_db, regions_info)
 
-        # Effectuer les agrégations PostgreSQL (properties)
+        # Effectuer les agrégations PostgreSQL (données immobilières)
         logger.info("Début des agrégations immobilières")
         aggregate_properties_by_city(pg_conn)
         pg_conn.commit()
-        logger.info("Commit after city aggregation")
+        logger.info("Agrégation immobilière par ville terminée")
         aggregate_properties_by_department(pg_conn)
         pg_conn.commit()
-        logger.info("Commit after department aggregation")
+        logger.info("Agrégation immobilière par département terminée")
         aggregate_properties_by_region(pg_conn)
         pg_conn.commit()
-        logger.info("Commit after region aggregation")
+        logger.info("Agrégation immobilière par région terminée")
 
         logger.info("Processus d'agrégation terminé avec succès")
 

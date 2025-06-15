@@ -24,7 +24,7 @@ def mocked_sentiments_labels_values_colors():
     return ['Positif', 'Neutre', 'Négatif'], [50, 30, 20], ['green', 'gray', 'red']
 
 
-def mocked_word_clouds_data():
+def mocked_word_frequencies():
     return {
         "Lorem": 100,
         "Ipsum": 80,

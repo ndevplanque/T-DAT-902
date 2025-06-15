@@ -7,7 +7,7 @@ import v1.features.word_clouds.repository as repository
 def word_clouds(entity, id):
     # Vérifier que l'entité est valide
     if entity not in ["cities"]:  # , "departments", "regions"]:
-        raise AttributeError("Les nuages de mots ne sont disponibles que pour les 'cities', 'departments' ou 'regions'")
+        raise AttributeError("Les nuages de mots ne sont disponibles que pour les 'cities'")
 
     # Récupérer les fréquences des mots
     frequencies = repository.get_word_frequencies(entity, id)

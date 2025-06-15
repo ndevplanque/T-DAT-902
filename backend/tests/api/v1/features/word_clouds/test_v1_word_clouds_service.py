@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from test_helper import mocked_word_clouds_data
+from test_helper import mocked_word_frequencies
 from v1.features.word_clouds.service import (
     word_clouds,
     build_word_cloud,
@@ -8,8 +8,8 @@ from v1.features.word_clouds.service import (
 from wordcloud import WordCloud
 
 
-@patch('v1.features.word_clouds.repository.get_word_cloud')
-def test_word_clouds(mock_get_word_cloud):
+@patch('v1.features.word_clouds.repository.get_word_frequencies')
+def test_word_clouds(mock_get_word_frequencies):
     """Test de la fonction word_clouds"""
 
     # Test avec des paramètres invalides
@@ -17,18 +17,18 @@ def test_word_clouds(mock_get_word_cloud):
         word_clouds("bug", 1)
         assert False, "Expected a AttributeError for invalid parameters"
     except AttributeError as e:
-        assert str(e) == "Les nuages de mots ne sont disponibles que pour les 'cities', 'departments' ou 'regions'"
+        assert str(e) == "Les nuages de mots ne sont disponibles que pour les 'cities'"
 
     # Test avec des paramètres valides
     entity = "cities"
     id = 1
 
-    mock_get_word_cloud.return_value = mocked_word_clouds_data()
+    mock_get_word_frequencies.return_value = mocked_word_frequencies()
 
     response = word_clouds(entity, id)
 
     # Vérifiez que la fonction get_word_cloud a été appelée avec les bons arguments
-    mock_get_word_cloud.assert_called_once_with(entity, id)
+    mock_get_word_frequencies.assert_called_once_with(entity, id)
 
     assert response is not None
     assert response.mimetype == "image/png"
@@ -53,7 +53,7 @@ def test_build_word_cloud():
         assert str(e) == "Données invalides."
 
     # Test avec des données valides
-    frequencies = mocked_word_clouds_data()
+    frequencies = mocked_word_frequencies()
     word_cloud = build_word_cloud(frequencies)
 
     # Vérifiez que le nuage de mots est généré
@@ -67,7 +67,7 @@ def test_build_word_cloud():
 
 def test_to_png():
     """Test de la fonction to_png"""
-    word_cloud = build_word_cloud(mocked_word_clouds_data())
+    word_cloud = build_word_cloud(mocked_word_frequencies())
 
     png_data = to_png(word_cloud)
 

@@ -153,8 +153,3 @@ def parse_query_result(query):
         aggs_max_price = 0
 
     return [features, aggs_min_price, aggs_max_price]
-
-
-# Générer un prix aléatoire entre 1500 et 6000 €/m² pour chaque zone avec numpy
-def generate_random_price():
-    return round(np.random.uniform(1500, 6000), 2)

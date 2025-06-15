@@ -42,18 +42,6 @@ def test_api_v1_map_areas(client, mocker):
     assert response.json == mock_map_areas.return_value
 
 
-def test_api_v1_price_tables(client, mocker):
-    """Test de l'endpoint /api/v1/price-tables"""
-    mock_price_tables = mocker.patch("main.v1_price_tables", return_value={"price_tables": "mocked"})
-
-    response = client.get("/api/v1/price-tables")
-
-    mock_price_tables.assert_called_once()
-
-    assert response.status_code == 200
-    assert response.json == mock_price_tables.return_value
-
-
 def test_api_v1_sentiments(client, mocker):
     """Test de l'endpoint /api/v1/sentiments/<entity>/<id>"""
     mock_sentiments = mocker.patch("main.v1_sentiments", return_value={"sentiments": "mocked"})

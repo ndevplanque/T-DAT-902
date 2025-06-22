@@ -195,47 +195,45 @@
     }).addTo(map);
 
     // Récupère les données GeoJSON via un appel API
-    function loadGeoJSONData() {
-        fetch(urlGetMapAreas(map.getZoom(), map.getBounds()))
-            .then(response => response.json())
-            .then(data => {
-                // Remplacer le contenu des layers sans recréer l'objet
-                priceLayer.clearLayers().addLayer(buildLayer("price", data));
-                satisfactionLayer.clearLayers().addLayer(buildLayer("satisfaction", data));
+    async function loadGeoJSONData() {
+        const response = await fetch(urlGetMapAreas(map.getZoom(), map.getBounds()));
+        const data = await response.json();
 
-                map.addLayer(findActiveLayer());
+        priceLayer.clearLayers().addLayer(buildLayer("price", data));
+        satisfactionLayer.clearLayers().addLayer(buildLayer("satisfaction", data));
 
-                map._lastGeoDataMin = data.metadata.min_price;
-                map._lastGeoDataMax = data.metadata.max_price;
+        map.addLayer(findActiveLayer());
 
-                // Rafraîchir la légende
-                if (map._legendControl) map.removeControl(map._legendControl);
-                map._legendControl = buildLegend(data.metadata.min_price, data.metadata.max_price);
-                map._legendControl.addTo(map);
-            })
-            .catch(error => console.error('Erreur de récupération des données GeoJSON :', error));
+        map._lastGeoDataMin = data.metadata.min_price;
+        map._lastGeoDataMax = data.metadata.max_price;
+
+        if (map._legendControl) map.removeControl(map._legendControl);
+        map._legendControl = buildLegend(data.metadata.min_price, data.metadata.max_price);
+        map._legendControl.addTo(map);
     }
 
+
     // Récupère les transactions via un appel API
-    function loadTransactions() {
-        fetch(urlGetMapTransactions(map.getZoom(), map.getBounds()))
-            .then(response => response.json())
-            .then(data => {
-                transactionsLayer.clearLayers();
-                transactionsLayer.addData(data);
-            })
-            .catch(error => console.error('Erreur de récupération des transactions :', error));
+    async function loadTransactions() {
+        const response = await fetch(urlGetMapTransactions(map.getZoom(), map.getBounds()));
+        const data = await response.json();
+
+        transactionsLayer.clearLayers();
+        transactionsLayer.addData(data);
+
+        transactionsLayer.eachLayer(layer => layer.bringToFront());
     }
 
     // Charger les données initiales lors du chargement de la carte
-    loadGeoJSONData();
-    loadTransactions();
+    async function reloadAllLayers() {
+        await loadGeoJSONData();     // charger les zones en premier
+        await loadTransactions();    // ensuite les transactions par-dessus
+    }
+
+    reloadAllLayers(); // au chargement initial
 
     // Recharger les données à chaque fois que la carte est déplacée (mouvement ou zoom)
-    map.on('moveend', function () {
-        loadGeoJSONData();
-        loadTransactions();
-    });
+    map.on('moveend', reloadAllLayers);
 
     /** Fonctions utilitaires **/
 

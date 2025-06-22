@@ -185,7 +185,7 @@
             const props = feature.properties;
             const popupContent = `
                 <strong>Transaction</strong><br>
-                Date : ${props.date_mutation}<br>
+                Date : ${props.date_mutation ? new Date(props.date_mutation).toLocaleDateString('fr-FR') : 'N/A'}<br>
                 Valeur foncière : ${props.val_fonciere ? props.val_fonciere.toLocaleString() + ' €' : 'N/A'}<br>
                 Surface bâtie : ${props.surface_m2 || 'N/A'} m²<br>
                 Terrain : ${props.terrain_m2 || 'N/A'} m²
@@ -211,7 +211,6 @@
         map._legendControl = buildLegend(data.metadata.min_price, data.metadata.max_price);
         map._legendControl.addTo(map);
     }
-
 
     // Récupère les transactions via un appel API
     async function loadTransactions() {
@@ -243,9 +242,8 @@
 
         return L.geoJSON(data, {
             style: function (feature) {
-                const actual = feature.properties.price;
                 return {
-                    fillColor: type === "price" ? getPriceColor(actual, min, max) : "black",
+                    fillColor: type === "price" ? getColor(feature.properties.price, min, max) : getColor(feature.properties.satisfaction, 5, 2.5),
                     color: "black",
                     weight: 1,
                     dashArray: "1, 4",
@@ -315,8 +313,8 @@
         document.getElementById('info-pane').style.display = 'none';
     });
 
-    function getPriceColor(price, minPrice, maxPrice) {
-        if (price == null || isNaN(price)) return "#aaaaaa"; // couleur neutre
+    function getColor(price, minPrice, maxPrice) {
+        if (price == null || isNaN(price)) return "#888888"; // couleur neutre
 
         const ratio = Math.max(0, Math.min(1, (price - minPrice) / (maxPrice - minPrice)));
 
@@ -363,18 +361,34 @@
             const div = L.DomUtil.create('div', 'info legend-gradient');
 
             div.innerHTML = `
-                <div class="legend-title">Prix moyen (€)</div>
-                <div class="legend-bar" style="background: linear-gradient(to right,
-                    hsl(180, 100%, 20%),
-                    hsl(150, 100%, 30%),
-                    hsl(90, 100%, 40%),
-                    hsl(45, 100%, 50%),
-                    hsl(0, 100%, 60%)
-                );"></div>
-                <div class="legend-labels">
-                    <span>${Math.round(min)}</span>
-                    <span>${Math.round((min + max) / 2)}</span>
-                    <span>${Math.round(max)}</span>
+                <div>
+                    <div class="legend-title">Prix moyen (€)</div>
+                    <div class="legend-bar" style="background: linear-gradient(to right,
+                        hsl(180, 100%, 20%),
+                        hsl(150, 100%, 30%),
+                        hsl(90, 100%, 40%),
+                        hsl(45, 100%, 50%),
+                        hsl(0, 100%, 60%)
+                    );"></div>
+                    <div class="legend-labels">
+                        <span>${Math.round(min)}</span>
+                        <span>${Math.round((min + max) / 2)}</span>
+                        <span>${Math.round(max)}</span>
+                    </div>
+                    </br>
+                    <div class="legend-title">Satisfaction</div>
+                    <div class="legend-bar" style="background: linear-gradient(to right,
+                        hsl(180, 100%, 20%),
+                        hsl(150, 100%, 30%),
+                        hsl(90, 100%, 40%),
+                        hsl(45, 100%, 50%),
+                        hsl(0, 100%, 60%)
+                    );"></div>
+                    <div class="legend-labels">
+                        <span>5</span>
+                        <span></span>
+                        <span>2,5</span>
+                    </div>
                 </div>
             `;
             return div;

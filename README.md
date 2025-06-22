@@ -1,6 +1,10 @@
 # T-DAT-902
 Homepedia project
 
+Find the original repository here: 
+
+https://github.com/ndevplanque/T-DAT-902
+
 ## Getting started
 
 ### Prerequisites

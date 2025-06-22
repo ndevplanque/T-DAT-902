@@ -170,6 +170,30 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
+    const transactionsLayer = L.geoJSON(null, {
+        pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, {
+                radius: 5,
+                fillColor: "#FF4400",
+                color: "#AA2200",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            });
+        },
+        onEachFeature: function (feature, layer) {
+            const props = feature.properties;
+            const popupContent = `
+                <strong>Transaction</strong><br>
+                Date : ${props.date_mutation}<br>
+                Valeur foncière : ${props.val_fonciere ? props.val_fonciere.toLocaleString() + ' €' : 'N/A'}<br>
+                Surface bâtie : ${props.surface_m2 || 'N/A'} m²<br>
+                Terrain : ${props.terrain_m2 || 'N/A'} m²
+            `;
+            layer.bindPopup(popupContent);
+        }
+    }).addTo(map);
+
     // Récupère les données GeoJSON via un appel API
     function loadGeoJSONData() {
         fetch(urlGetMapAreas(map.getZoom(), map.getBounds()))
@@ -192,12 +216,25 @@
             .catch(error => console.error('Erreur de récupération des données GeoJSON :', error));
     }
 
+    // Récupère les transactions via un appel API
+    function loadTransactions() {
+        fetch(urlGetMapTransactions(map.getZoom(), map.getBounds()))
+            .then(response => response.json())
+            .then(data => {
+                transactionsLayer.clearLayers();
+                transactionsLayer.addData(data);
+            })
+            .catch(error => console.error('Erreur de récupération des transactions :', error));
+    }
+
     // Charger les données initiales lors du chargement de la carte
     loadGeoJSONData();
+    loadTransactions();
 
     // Recharger les données à chaque fois que la carte est déplacée (mouvement ou zoom)
     map.on('moveend', function () {
         loadGeoJSONData();
+        loadTransactions();
     });
 
     /** Fonctions utilitaires **/
@@ -301,6 +338,12 @@
         const sw = bounds.getSouthWest();
         const ne = bounds.getNorthEast();
         return `${API_URL}/api/v1/map-areas/${zoom}/${sw.lat}/${sw.lng}/${ne.lat}/${ne.lng}`;
+    }
+
+     function urlGetMapTransactions(zoom, bounds) {
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        return `${API_URL}/api/v1/map-transactions/${zoom}/${sw.lat}/${sw.lng}/${ne.lat}/${ne.lng}`;
     }
 
     function findActiveLayer() {

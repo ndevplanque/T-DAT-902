@@ -59,3 +59,15 @@ def list_cities_properties(cities_ids):
         FROM properties
         WHERE code_commune IN ({formatted_ids})
         """
+
+
+def list_map_transactions(bounds: Bounds):
+    return f"""
+        SELECT date_mutation, valeur_fonciere, surface_reelle_bati, surface_terrain, ST_AsGeoJSON(geom) as geo_json  
+        FROM properties 
+        WHERE valeur_fonciere is not NULL
+        AND valeur_fonciere >= 500
+        AND ST_Within(geom, ST_MakeEnvelope({bounds.sw_lon}, {bounds.sw_lat}, {bounds.ne_lon}, {bounds.ne_lat}, 4326))
+        ORDER BY date_mutation DESC
+        LIMIT 750;
+    """

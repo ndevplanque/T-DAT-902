@@ -1,10 +1,11 @@
 import v1.database.queries as q
 import numpy as np
 import json
+import logs
 import re
 from v1.database.postgres import Postgres
 from v1.models.bounds import Bounds
-
+from v1.database.mongodb import MongoDB
 
 def get_feature_collection(entity, bounds: Bounds):
     if entity == "cities":
@@ -89,6 +90,7 @@ def parse_query_result(query):
     aggs_max_price = None
 
     entity = extract_entity(query)
+    ids=[]
 
     db = Postgres()
     for id, name, geo_json, nb_transactions, area_min_price, area_max_price, area_average_price in db.fetchall(query):
@@ -109,7 +111,7 @@ def parse_query_result(query):
         if area_average_price is not None and (aggs_max_price is None or area_average_price > aggs_max_price):
             aggs_max_price = area_average_price
 
-        id_graphs = id
+        id_agglo = id
 
         # Liste des arrondissements de Paris
         arrondissements_paris = [
@@ -119,7 +121,7 @@ def parse_query_result(query):
 
         # Si l'ID correspond à un arrondissement parisien, le regrouper sous le code INSEE Paris
         if entity == 'cities' and int(id) in arrondissements_paris:
-            id_graphs = 75056
+            id_agglo = 75056
 
         # Liste des arrondissements de Marseille
         arrondissements_marseille = [
@@ -129,18 +131,22 @@ def parse_query_result(query):
 
         # Si l'ID correspond à un arrondissement marseillais, le regrouper sous le code INSEE Paris
         if entity == 'cities' and int(id) in arrondissements_marseille:
-            id_graphs = 13055
+            id_agglo = 13055
+
+        ids.append(id)
 
         features.append({
             "type": "Feature",
             "properties": {
                 "id": id,
+                "id_agglo": id_agglo,
                 "name": name,
                 "price": area_average_price,
                 "max_price": area_max_price,
                 "min_price": area_min_price,
-                "word_cloud_url": f"api/v1/word-clouds/{entity}/{id_graphs}",
-                "sentiments_url": f"api/v1/sentiments/{entity}/{id_graphs}",
+                "satisfaction": None,
+                "word_cloud_url": f"api/v1/word-clouds/{entity}/{id_agglo}",
+                "sentiments_url": f"api/v1/sentiments/{entity}/{id_agglo}",
             },
             "geometry": json.loads(geo_json)
         })
@@ -151,5 +157,18 @@ def parse_query_result(query):
         aggs_min_price = 0
     if aggs_max_price is None:
         aggs_max_price = 0
+
+    with MongoDB() as mongo:
+        cities = mongo.find(
+            collection='villes',
+            query={'city_id': {"$in": ids}},
+            fields=MongoDB.only_fields(['city_id', 'notes', 'nombre_avis'])
+        )
+
+        for document in cities:
+            if document and document['nombre_avis'] > 0:
+                for feature in features:
+                    if feature['properties']['id'] == document['city_id']:
+                        feature['properties']['satisfaction'] = document['notes']['moyenne']
 
     return [features, aggs_min_price, aggs_max_price]

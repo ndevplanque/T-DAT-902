@@ -1,8 +1,9 @@
 import logs
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
-from pymongo.synchronous.cursor import Cursor
-from typing import Mapping
+from pymongo.cursor import Cursor
+from collections.abc import Mapping
+from bson import ObjectId
 
 
 class MongoDB:
@@ -78,26 +79,27 @@ class MongoDB:
 
     @staticmethod
     def json(data):
-        """Convertit les données en JSON"""
+        """Convertit un document ou une liste de documents Mongo en JSON serializable"""
 
-        # Mapping correspond à un document seul
-        # Cursor correspond à une liste de documents
-        if not data or not isinstance(data, (Mapping, Cursor)):
-            return {}
-
-        json = {}
-
-        if isinstance(data, Mapping):
-            data = [data]
-
-        for document in data:
-            for key in document:
-                if document[key].__class__.__name__ == "ObjectId":
-                    json[key] = str(document[key])
+        def convert_document(doc):
+            result = {}
+            for key, value in doc.items():
+                if isinstance(value, ObjectId):
+                    result[key] = str(value)
                 else:
-                    json[key] = document[key]
+                    result[key] = value
+            return result
 
-        return json
+        # Si c'est un document seul
+        if isinstance(data, Mapping):
+            return convert_document(data)
+
+        # Si c'est un curseur ou une liste de documents
+        if isinstance(data, (list, Cursor)):
+            return [convert_document(doc) for doc in data]
+
+        # Si c'est vide ou d'un type inconnu
+        return {}
 
     @staticmethod
     def only_fields(fields):

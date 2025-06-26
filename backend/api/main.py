@@ -4,6 +4,7 @@ from flask_cors import CORS
 from v1.models.bounds import Bounds
 from v1.features.health.service import health as v1_health
 from v1.features.map_areas.service import map_areas as v1_map_areas
+from v1.features.map_transactions.service import map_transactions as v1_map_transactions
 from v1.features.area_listing.service import area_listing as v1_area_listing
 from v1.features.word_clouds.service import word_clouds as v1_word_clouds
 from v1.features.sentiments.service import sentiments as v1_sentiments
@@ -34,6 +35,13 @@ def api_v1_map_areas(zoom, sw_lat, sw_lon, ne_lat, ne_lon):
     bounds = Bounds(int(zoom), float(sw_lat), float(sw_lon), float(ne_lat), float(ne_lon))
     logs.info(f"Bounds: {bounds}")
     return v1_map_areas(bounds)
+
+
+@app.route('/api/v1/map-transactions/<zoom>/<sw_lat>/<sw_lon>/<ne_lat>/<ne_lon>', methods=['GET'])
+def api_v1_map_transactions(zoom, sw_lat, sw_lon, ne_lat, ne_lon):
+    bounds = Bounds(int(zoom), float(sw_lat), float(sw_lon), float(ne_lat), float(ne_lon))
+    logs.info(f"Bounds: {bounds}")
+    return v1_map_transactions(bounds)
 
 
 @app.route('/api/v1/sentiments/<entity>/<id>', methods=['GET'])
